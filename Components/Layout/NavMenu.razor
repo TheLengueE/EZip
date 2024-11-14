@@ -34,6 +34,19 @@
             </NavLink>
         </div>
 
+        <RadzenButton Text="Switch to English" Click="@(() => SwitchToEnglish())" Style="margin-left: auto;" />
+
     </nav>
 
 </div>
+
+@code {
+    private void SwitchToEnglish()
+    {
+        // Set the application language to English
+        languageService.SetLanguage("en");
+
+        // Optionally, force a page refresh to apply the language change immediately
+        StateHasChanged();
+    }
+}
