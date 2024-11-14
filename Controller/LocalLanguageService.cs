@@ -2,7 +2,7 @@
 {
     using System.Globalization;
     using System.Resources;
-    using Microsoft.Maui.Storage; // Ensure you have this for Preferences
+    using Microsoft.Maui.Storage;
 
     /// <summary>
     /// This class is used to set the local language
