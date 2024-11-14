@@ -29,7 +29,14 @@
         /// <returns>The localized string, or the key itself if not found.</returns>
         public string GetString(string key)
         {
-            return _resourceManager.GetString(key, CultureInfo.CurrentUICulture) ?? key;
+            string ? value = _resourceManager.GetString(key, CultureInfo.CurrentUICulture);
+
+            if (value != null)
+            {
+                return value;
+            }
+
+            return key;
         }
 
         /// <summary>
