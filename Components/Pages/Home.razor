@@ -1,5 +1,74 @@
 ﻿@page "/"
+@using Radzen
+@using System.IO
+@inject IJSRuntime JSRuntime
 
-<h1>Hello, world!</h1>
+<h1>文件浏览器</h1>
 
-Welcome to your new app.
+<p>当前路径：@currentPath</p>
+
+<!-- 输入框和按钮 -->
+<RadzenTextBox @bind-Value="newPath" Placeholder="输入新路径" Style="width: 300px;" />
+<RadzenButton Text="切换路径" ButtonStyle="ButtonStyle.Primary" Click="ChangePath" />
+
+<hr />
+
+<!-- 展示目录和文件 -->
+@if (directoryItems != null)
+{
+    <h3>当前目录下的内容：</h3>
+    <ul>
+        @foreach (var item in directoryItems)
+        {
+            <li>@item</li>
+        }
+    </ul>
+}
+else
+{
+    <p>加载目录失败，或路径无效。</p>
+}
+
+@code {
+    private string currentPath = "C:\\";
+    private string newPath = string.Empty;
+    private List<string> directoryItems;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDirectoryItems(currentPath);
+    }
+
+    private async Task LoadDirectoryItems(string path)
+    {
+        try
+        {
+            if (Directory.Exists(path))
+            {
+                var directories = Directory.GetDirectories(path);
+                var files = Directory.GetFiles(path);
+                directoryItems = directories.Concat(files).ToList();
+                currentPath = path;
+            }
+            else
+            {
+                directoryItems = null;
+                currentPath = "无效路径";
+            }
+        }
+        catch (Exception ex)
+        {
+            directoryItems = null;
+            currentPath = $"错误: {ex.Message}";
+        }
+        StateHasChanged();
+    }
+
+    private async Task ChangePath()
+    {
+        if (!string.IsNullOrEmpty(newPath))
+        {
+            await LoadDirectoryItems(newPath);
+        }
+    }
+}

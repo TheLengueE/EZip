@@ -27,7 +27,7 @@
             var logDirectory = Path.GetDirectoryName(logFilePath);
             if (!Directory.Exists(logDirectory))
             {
-                logDirectory = "app.log";
+                logDirectory = "EZip.log";
                 Directory.CreateDirectory(logDirectory);
             }
         }

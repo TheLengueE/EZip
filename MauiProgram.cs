@@ -1,5 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
-using EZip.Controller;
+﻿using EZip.Controller;
+using Radzen;
 
 namespace EZip
 {
@@ -22,7 +22,17 @@ namespace EZip
     		builder.Logging.AddDebug();
 #endif
 
+
+            // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
+            builder.Services.AddSingleton<EasyLogger>();
+
+            builder.Services.AddSingleton<DialogService>();
+            builder.Services.AddSingleton<NotificationService>();
+
+            // Transient services
+
+            // Scoped services
 
             return builder.Build();
         }
