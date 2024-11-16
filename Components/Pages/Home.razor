@@ -36,6 +36,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        currentPath = Directory.GetCurrentDirectory();
         await LoadDirectoryItems(currentPath);
     }
 
