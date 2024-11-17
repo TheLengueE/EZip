@@ -1,13 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace EZip.Controller
+﻿namespace EZip.Controller
 {
-    public interface IDirectory
+    using Model;
+    interface IDirectory
     {
+        public AppResponse GetDirectoryPath();
 
+        public AppResponse ShowDirectoryFiles();
+
+        public AppResponse CreateDirectory(AppRequest request);
+
+        public AppResponse DeleteDirectory(AppRequest request);
+
+        public AppResponse MoveDirectory(AppRequest request);
+
+        public AppResponse CopyDirectory(AppRequest request);
+
+        public AppResponse RenameDirectory(AppRequest request);
     }
 }

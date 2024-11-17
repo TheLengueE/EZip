@@ -23,12 +23,18 @@ namespace EZip
 #endif
 
 
-            // Singleton services
+            // Singleton services 单例
             builder.Services.AddSingleton<LocalLanguageService>();
             builder.Services.AddSingleton<EasyLogger>();
-
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
+
+#if WINDOWS
+        builder.Services.AddSingleton<IDirectory, WindowsDirectoryOperations>();
+#elif ANDROID
+            builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
+#endif
+
 
             // Transient services
 
