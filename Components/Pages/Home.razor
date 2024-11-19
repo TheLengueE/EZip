@@ -1,13 +1,14 @@
 ﻿@page "/"
 @using Radzen
 @using System.IO
+@using EZip.Controller
 @inject IJSRuntime JSRuntime
 
-<h1>文件浏览器</h1>
+@inject IDirectory test
+@inject EasyLogger logger
 
+<!-- 当前路径所在和提供切换路径的地方-->
 <p>当前路径：@currentPath</p>
-
-<!-- 输入框和按钮 -->
 <RadzenTextBox @bind-Value="newPath" Placeholder="输入新路径" Style="width: 300px;" />
 <RadzenButton Text="切换路径" ButtonStyle="ButtonStyle.Primary" Click="ChangePath" />
 
@@ -26,21 +27,28 @@
 }
 else
 {
-    <p>加载目录失败，或路径无效。</p>
+    <p>加载目录失败，或当前目录为空。</p>
 }
+
 
 @code {
     private string currentPath = "C:\\";
     private string newPath = string.Empty;
-    private List<string> directoryItems;
+    private List<string>? directoryItems;
 
-    protected override async Task OnInitializedAsync()
+    // this method will be called when the component is initialized
+    protected override void OnInitialized()
     {
-        currentPath = Directory.GetCurrentDirectory();
-        await LoadDirectoryItems(currentPath);
+        currentPath = test.NowPath;
+        LoadDirectoryItems(currentPath);
     }
 
-    private async Task LoadDirectoryItems(string path)
+    /// <summary>
+    /// when the button is clicked, this method will be called
+    /// this function will load the directory items in the new path
+    /// </summary>
+    /// <param name="path"></param>
+    private void LoadDirectoryItems(string path)
     {
         try
         {
@@ -65,11 +73,11 @@ else
         StateHasChanged();
     }
 
-    private async Task ChangePath()
+    private void ChangePath()
     {
         if (!string.IsNullOrEmpty(newPath))
         {
-            await LoadDirectoryItems(newPath);
+            LoadDirectoryItems(newPath);
         }
     }
 }

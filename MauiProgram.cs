@@ -1,4 +1,5 @@
 ﻿using EZip.Controller;
+using Microsoft.Extensions.Logging;
 using Radzen;
 
 namespace EZip
@@ -19,21 +20,25 @@ namespace EZip
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
-    		//builder.Logging.AddDebug();
+            //builder.Logging.AddDebug();
 #endif
 
 
-            // Singleton services 单例
+            // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
-            builder.Services.AddSingleton<EasyLogger>();
+            //builder.Services.AddSingleton<EasyLogger>();
+            builder.Services.AddSingleton(new EasyLogger("EZip.log", "MainLogger"));
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
 
-#if WINDOWS
-        builder.Services.AddSingleton<IDirectory, WindowsDirectoryOperations>();
-#elif ANDROID
-            builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
-#endif
+
+            // if is windows
+            builder.Services.AddSingleton<IDirectory, WindowsDirectoryOperations>();
+            builder.Services.AddSingleton<IFile, WindowsFileOperations>();
+
+            // if is android
+            //builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
+            //builder.Services.AddSingleton<IFile, AndroidFileOperations>();
 
 
             // Transient services

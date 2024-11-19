@@ -1,7 +1,7 @@
-﻿namespace EZip.Controller.FileOperations
+﻿namespace EZip.Controller
 {
     using Model;
-    public class WindowsFileOperations
+    public class WindowsFileOperations : IFile
     {
         public AppResponse CreateFile(AppRequest request)
         {

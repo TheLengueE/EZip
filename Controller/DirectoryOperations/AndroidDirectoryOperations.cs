@@ -3,6 +3,13 @@
     using Model;
     public class AndroidDirectoryOperations : IDirectory
     {
+        public string NowPath { get; set; }
+
+        public AndroidDirectoryOperations()
+        {
+            NowPath = "/storage/emulated/0";
+        }
+
         public AppResponse GetDirectoryPath()
         {
             // ToDo

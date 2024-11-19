@@ -3,6 +3,15 @@
     using Model;
     class WindowsDirectoryOperations : IDirectory
     {
+        public string NowPath { get; set; }
+
+        public WindowsDirectoryOperations()
+        {
+            NowPath = "C:\\";
+            Console.WriteLine("WindowsDirectoryOperations created");
+        }
+
+
         public AppResponse GetDirectoryPath() 
         {
             // ToDo

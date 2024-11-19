@@ -15,19 +15,24 @@
         private readonly object _lock = new();
 
         /// <summary>
-        ///  
+        /// Initializes a new instance of the <see cref="EasyLogger"/> class.
         /// </summary>
-        /// <param name="logFilePath"></param>
-        /// <param name="loggerName"></param>
-        public EasyLogger(string logFilePath, string loggerName)
+        /// <param name="fileName">The log file name.</param>
+        /// <param name="loggerName">The logger name.</param>
+        public EasyLogger(string fileName, string loggerName)
         {
-            _logFilePath = logFilePath;
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                throw new ArgumentException("Log file name cannot be null or whitespace.", nameof(fileName));
+            }
+
+            _logFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
             _loggerName = loggerName;
 
-            var logDirectory = Path.GetDirectoryName(logFilePath);
-            if (!Directory.Exists(logDirectory))
+            // Ensure directory exists
+            var logDirectory = Path.GetDirectoryName(_logFilePath);
+            if (!string.IsNullOrEmpty(logDirectory) && !Directory.Exists(logDirectory))
             {
-                logDirectory = "EZip.log";
                 Directory.CreateDirectory(logDirectory);
             }
         }

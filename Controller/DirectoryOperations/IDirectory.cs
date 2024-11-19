@@ -3,6 +3,8 @@
     using Model;
     interface IDirectory
     {
+        string NowPath { get; set; }
+
         public AppResponse GetDirectoryPath();
 
         public AppResponse ShowDirectoryFiles();
