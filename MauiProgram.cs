@@ -23,7 +23,6 @@ namespace EZip
             //builder.Logging.AddDebug();
 #endif
 
-
             // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
             //builder.Services.AddSingleton<EasyLogger>();
@@ -31,14 +30,14 @@ namespace EZip
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
 
-
-            // if is windows
+            // when use visual studio, change different platform define different services
+#if WINDOWS
             builder.Services.AddSingleton<IDirectory, WindowsDirectoryOperations>();
             builder.Services.AddSingleton<IFile, WindowsFileOperations>();
-
-            // if is android
-            //builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
-            //builder.Services.AddSingleton<IFile, AndroidFileOperations>();
+#elif ANDROID
+            builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
+            builder.Services.AddSingleton<IFile, AndroidFileOperations>();
+#endif
 
 
             // Transient services

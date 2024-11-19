@@ -8,7 +8,6 @@
         public WindowsDirectoryOperations()
         {
             NowPath = "C:\\";
-            Console.WriteLine("WindowsDirectoryOperations created");
         }
 
 

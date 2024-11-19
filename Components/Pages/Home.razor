@@ -3,18 +3,18 @@
 @using System.IO
 @using EZip.Controller
 @inject IJSRuntime JSRuntime
+@inject IDirectory s_directory
 
-@inject IDirectory test
-@inject EasyLogger logger
+<div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
+    <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" />
+    <RadzenTextBox @bind-Value="newPath" Placeholder="输入目标路径" Style="flex-grow: 1;"
+                   @onkeydown="HandleKeyDown" />
+    <RadzenButton Text="确定" ButtonStyle="ButtonStyle.Primary" Click="ChangePath" />
+</div>
 
-<!-- 当前路径所在和提供切换路径的地方-->
-<p>当前路径：@currentPath</p>
-<RadzenTextBox @bind-Value="newPath" Placeholder="输入新路径" Style="width: 300px;" />
-<RadzenButton Text="切换路径" ButtonStyle="ButtonStyle.Primary" Click="ChangePath" />
 
 <hr />
 
-<!-- 展示目录和文件 -->
 @if (directoryItems != null)
 {
     <h3>当前目录下的内容：</h3>
@@ -30,24 +30,22 @@ else
     <p>加载目录失败，或当前目录为空。</p>
 }
 
-
 @code {
     private string currentPath = "C:\\";
     private string newPath = string.Empty;
     private List<string>? directoryItems;
 
-    // this method will be called when the component is initialized
     protected override void OnInitialized()
     {
-        currentPath = test.NowPath;
+        currentPath = s_directory.NowPath;
         LoadDirectoryItems(currentPath);
+        newPath = currentPath;
     }
 
     /// <summary>
-    /// when the button is clicked, this method will be called
-    /// this function will load the directory items in the new path
+    /// load the items in the directory
     /// </summary>
-    /// <param name="path"></param>
+    /// <param name="path">total path</param>
     private void LoadDirectoryItems(string path)
     {
         try
@@ -78,6 +76,17 @@ else
         if (!string.IsNullOrEmpty(newPath))
         {
             LoadDirectoryItems(newPath);
+        }
+    }
+
+    /// <summary>
+    /// in the case of pressing the Enter key, change the directory  path
+    /// </summary>
+    private void HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            ChangePath();
         }
     }
 }
