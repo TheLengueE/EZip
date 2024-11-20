@@ -22,8 +22,8 @@
             _resourceManager = new ResourceManager("EZip.Resources.Languages.Strings", typeof(LocalLanguageService).Assembly);
             var savedLanguage = Preferences.Get("AppLanguage", _defaultLanguage);
 
-            // if SetLanguage fails, default to English
-            _currentCulture = new CultureInfo("en-US");
+            // if SetLanguage fails, default to Chinese
+            _currentCulture = new CultureInfo("zh-CN");
 
             SetLanguage(savedLanguage); 
         }

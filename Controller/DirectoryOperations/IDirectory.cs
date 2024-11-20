@@ -7,7 +7,9 @@
 
         public AppResponse GetDirectoryPath();
 
-        public AppResponse ShowDirectoryFiles();
+        public AppResponse ShowDirectoryFiles(AppRequest request);
+
+        public AppResponse ShowDirectoryDirectories(AppRequest request);
 
         public AppResponse CreateDirectory(AppRequest request);
 

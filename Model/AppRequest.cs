@@ -2,7 +2,7 @@
 {
     public enum RequestType
     {
-        k_first,
+        k_showDirectory,
         k_second 
     }
 

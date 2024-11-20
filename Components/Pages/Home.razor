@@ -2,16 +2,16 @@
 @using Radzen
 @using System.IO
 @using EZip.Controller
+@using EZip.Model
 @inject IJSRuntime JSRuntime
 @inject IDirectory s_directory
+@inject IFile s_file
 
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
     <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" />
-    <RadzenTextBox @bind-Value="newPath" Placeholder="输入目标路径" Style="flex-grow: 1;"
-                   @onkeydown="HandleKeyDown" />
+    <RadzenTextBox @bind-Value="newPath" Placeholder="输入目标路径" Style="flex-grow: 1;"@onkeydown="HandleKeyDown" />
     <RadzenButton Text="确定" ButtonStyle="ButtonStyle.Primary" Click="ChangePath" />
 </div>
-
 
 <hr />
 
@@ -43,19 +43,37 @@ else
     }
 
     /// <summary>
-    /// load the items in the directory
+    /// Load the items in the directory
     /// </summary>
-    /// <param name="path">total path</param>
+    /// <param name="path">Total path</param>
     private void LoadDirectoryItems(string path)
     {
+        AppRequest request = new AppRequest
+            {
+                RequestType = RequestType.k_showDirectory,
+                RequestData = path
+            };
+
+        var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
+        var appResponseFiles = s_directory.ShowDirectoryFiles(request);
+
         try
         {
             if (Directory.Exists(path))
             {
-                var directories = Directory.GetDirectories(path);
-                var files = Directory.GetFiles(path);
-                directoryItems = directories.Concat(files).ToList();
-                currentPath = path;
+                if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
+                {
+                    var directories = appResponseDirectories.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
+                    var files = appResponseFiles.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
+
+                    directoryItems = directories.Concat(files).ToList();
+                    currentPath = path;
+                }
+                else
+                {
+                    directoryItems = null;
+                    currentPath = $"错误: {appResponseDirectories.ErrorMessage ?? appResponseFiles.ErrorMessage ?? "未知错误"}";
+                }
             }
             else
             {
@@ -68,8 +86,10 @@ else
             directoryItems = null;
             currentPath = $"错误: {ex.Message}";
         }
+
         StateHasChanged();
     }
+
 
     private void ChangePath()
     {
