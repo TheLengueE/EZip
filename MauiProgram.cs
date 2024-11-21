@@ -43,6 +43,7 @@ namespace EZip
             // Transient services
 
             // Scoped services
+            builder.Services.AddScoped<NotificationService>();
 
             return builder.Build();
         }

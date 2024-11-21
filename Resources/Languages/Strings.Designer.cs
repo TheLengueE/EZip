@@ -61,6 +61,42 @@ namespace EZip.Resources.Languages {
         }
         
         /// <summary>
+        ///   查找类似 确定 的本地化字符串。
+        /// </summary>
+        internal static string Home_Confirm {
+            get {
+                return ResourceManager.GetString("Home-Confirm", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 已到达根路径，无法回退。 的本地化字符串。
+        /// </summary>
+        internal static string Home_GoBackFaild {
+            get {
+                return ResourceManager.GetString("Home-GoBackFaild", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 该路径不存在 的本地化字符串。
+        /// </summary>
+        internal static string Home_InvalidPath {
+            get {
+                return ResourceManager.GetString("Home-InvalidPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 无法加载目录内容，请检查目录权限后重试。 的本地化字符串。
+        /// </summary>
+        internal static string Home_LoadDirectoryFailed {
+            get {
+                return ResourceManager.GetString("Home-LoadDirectoryFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 首页 的本地化字符串。
         /// </summary>
         internal static string Menu1 {

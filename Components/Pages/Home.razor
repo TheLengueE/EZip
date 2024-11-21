@@ -3,15 +3,22 @@
 @using System.IO
 @using EZip.Controller
 @using EZip.Model
+
 @inject IJSRuntime JSRuntime
 @inject IDirectory s_directory
 @inject IFile s_file
+@inject NotificationService s_notification
+@inject EasyLogger s_logger
+@inject LocalLanguageService languageService
+
 
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
-    <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" />
-    <RadzenTextBox @bind-Value="newPath" Placeholder="输入目标路径" Style="flex-grow: 1;"@onkeydown="HandleKeyDown" />
-    <RadzenButton Text="确定" ButtonStyle="ButtonStyle.Primary" Click="ChangePath" />
+    <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" Click="GoBack" />
+    <RadzenTextBox @bind-Value="currentPath" Placeholder="输入目标路径" Style="flex-grow: 1;" @onkeydown="HandleKeyDown" />
+    <RadzenButton Text=@languageService.GetString("Home-Confirm") ButtonStyle="ButtonStyle.Primary" Click="() => LoadDirectoryItems(currentPath)" />
 </div>
+
+<RadzenNotification />
 
 <hr />
 
@@ -31,15 +38,15 @@ else
 }
 
 @code {
-    private string currentPath = "C:\\";
-    private string newPath = string.Empty;
-    private List<string>? directoryItems;
+    private List<string> directoryItems = new List<string>();
+    private Stack<string> pathStack = new Stack<string>();
+    string currentPath = "";
 
     protected override void OnInitialized()
     {
+        pathStack.Push(s_directory.NowPath);
+        LoadDirectoryItems(s_directory.NowPath);
         currentPath = s_directory.NowPath;
-        LoadDirectoryItems(currentPath);
-        newPath = currentPath;
     }
 
     /// <summary>
@@ -54,49 +61,43 @@ else
                 RequestData = path
             };
 
-        var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
-        var appResponseFiles = s_directory.ShowDirectoryFiles(request);
-
-        try
+        if (Directory.Exists(path))
         {
-            if (Directory.Exists(path))
-            {
-                if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
-                {
-                    var directories = appResponseDirectories.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
-                    var files = appResponseFiles.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
+            var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
+            var appResponseFiles = s_directory.ShowDirectoryFiles(request);
 
-                    directoryItems = directories.Concat(files).ToList();
-                    currentPath = path;
-                }
-                else
-                {
-                    directoryItems = null;
-                    currentPath = $"错误: {appResponseDirectories.ErrorMessage ?? appResponseFiles.ErrorMessage ?? "未知错误"}";
-                }
+            if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
+            {
+                var directories = appResponseDirectories.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
+                var files = appResponseFiles.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
+
+                directoryItems = directories.Concat(files).ToList();
+                currentPath = path;
+                pathStack.Push(path);
             }
             else
             {
-                directoryItems = null;
-                currentPath = "无效路径";
+                s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = @languageService.GetString("Home-LoadDirectoryFailed"),
+                        // maybe should show the program error message
+                        Detail = "err message",
+                        Duration = 4000
+                    });
             }
         }
-        catch (Exception ex)
+        else
         {
-            directoryItems = null;
-            currentPath = $"错误: {ex.Message}";
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = @languageService.GetString("Home-InvalidPath"),
+                    Duration = 4000
+                });
         }
 
         StateHasChanged();
-    }
-
-
-    private void ChangePath()
-    {
-        if (!string.IsNullOrEmpty(newPath))
-        {
-            LoadDirectoryItems(newPath);
-        }
     }
 
     /// <summary>
@@ -104,9 +105,34 @@ else
     /// </summary>
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-        if (e.Key == "Enter")
+        if (!string.IsNullOrEmpty(currentPath))
         {
-            ChangePath();
+            LoadDirectoryItems(currentPath);
+        }
+    }
+
+    /// <summary>
+    ///  this function is used to go back to the previous directory
+    ///  还有bug,先进行跳转再进行回退，回退到跟路径没提示，不合理
+    /// </summary>
+    private void GoBack()
+    {
+        if (pathStack.Count > 2 )
+        {
+            pathStack.Pop();
+
+            string previousPath = pathStack.Peek();
+
+            LoadDirectoryItems(previousPath);
+        }
+        else
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = @languageService.GetString("Home-GoBackFaild"),
+                    Duration = 4000
+                });
         }
     }
 }

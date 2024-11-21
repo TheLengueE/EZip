@@ -126,4 +126,16 @@
   <data name="Menu3" xml:space="preserve">
     <value>帮助</value>
   </data>
+  <data name="Home-Confirm" xml:space="preserve">
+    <value>确定</value>
+  </data>
+  <data name="Home-LoadDirectoryFailed" xml:space="preserve">
+    <value>无法加载目录内容，请检查目录权限后重试。</value>
+  </data>
+  <data name="Home-InvalidPath" xml:space="preserve">
+    <value>该路径不存在</value>
+  </data>
+  <data name="Home-GoBackFaild" xml:space="preserve">
+    <value>已到达根路径，无法回退。</value>
+  </data>
 </root>
