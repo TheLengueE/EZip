@@ -23,6 +23,8 @@ namespace EZip
             //builder.Logging.AddDebug();
 #endif
 
+
+
             // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
             //builder.Services.AddSingleton<EasyLogger>();

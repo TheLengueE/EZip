@@ -1,13 +1,16 @@
 ﻿namespace EZip.Controller
 {
+    using Microsoft.Extensions.Logging;
     using Model;
     public class AndroidDirectoryOperations : IDirectory
     {
         public string NowPath { get; set; }
+        private readonly EasyLogger _logger;
 
-        public AndroidDirectoryOperations()
+        public AndroidDirectoryOperations(EasyLogger logger)
         {
             NowPath = "/storage/emulated/0";
+            _logger = logger;
         }
 
         public AppResponse GetDirectoryPath()

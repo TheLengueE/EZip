@@ -9,35 +9,71 @@
 @inject IFile s_file
 @inject NotificationService s_notification
 @inject EasyLogger s_logger
-@inject LocalLanguageService languageService
-
+@inject LocalLanguageService s_languageService
 
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
     <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" Click="GoBack" />
     <RadzenTextBox @bind-Value="currentPath" Placeholder="输入目标路径" Style="flex-grow: 1;" @onkeydown="HandleKeyDown" />
-    <RadzenButton Text=@languageService.GetString("Home-Confirm") ButtonStyle="ButtonStyle.Primary" Click="() => LoadDirectoryItems(currentPath)" />
+    <RadzenButton Text=@s_languageService.GetString("Home-Confirm") ButtonStyle="ButtonStyle.Primary" Click="() => LoadDirectoryItems(currentPath)" />
 </div>
 
 <RadzenNotification />
 
 <hr />
 
-@if (directoryItems != null)
-{
-    <h3>当前目录下的内容：</h3>
-    <ul>
-        @foreach (var item in directoryItems)
-        {
-            <li>@item</li>
-        }
-    </ul>
-}
-else
-{
-    <p>加载目录失败，或当前目录为空。</p>
-}
+<div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
+    <div style="flex: 1;">名称</div>
+    <div style="flex: 1; text-align: center;">创建时间</div>
+    <div style="flex: 1; text-align: center;">更新时间</div>
+    <div style="flex: 1; text-align: right;">大小</div>
+</div>
+
+<RadzenDataList Data="@items" TItem="HomeContent" AllowPaging="true" PageSize="50">
+    <Template Context="item">
+        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0;">
+            <!-- 文件/目录名称 -->
+            <div style="flex: 1; font-weight: bold;">
+                @item.Content
+            </div>
+            <!-- 创建时间 -->
+            <div style="flex: 1; text-align: center;">
+                @item.CreateTime.ToString("yyyy/MM/dd HH:mm:ss")
+            </div>
+            <!-- 更新时间 -->
+            <div style="flex: 1; text-align: center;">
+                @item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")
+            </div>
+            <!-- 文件大小 -->
+            <div style="flex: 1; text-align: right;">
+                @if (item.SizeInMB.HasValue)
+                {
+                    @($"{item.SizeInMB.Value:F2} MB")
+                }
+             </div>
+        </div>
+    </Template>
+</RadzenDataList>
 
 @code {
+
+    private List<HomeContent> items = new List<HomeContent>
+    {
+        new HomeContent
+        {
+            Content = "File1.txt",
+            CreateTime = DateTime.Now.AddDays(-10),
+            UpdateTime = DateTime.Now.AddDays(-5),
+            SizeInMB = 2.5
+        },
+        new HomeContent
+        {
+            Content = "Folder1",
+            CreateTime = DateTime.Now.AddDays(-20),
+            UpdateTime = DateTime.Now.AddDays(-15),
+            SizeInMB = null // 文件夹
+        }
+    };
+
     private List<string> directoryItems = new List<string>();
     private Stack<string> pathStack = new Stack<string>();
     string currentPath = "";
@@ -48,6 +84,7 @@ else
         LoadDirectoryItems(s_directory.NowPath);
         currentPath = s_directory.NowPath;
     }
+
 
     /// <summary>
     /// Load the items in the directory
@@ -80,7 +117,7 @@ else
                 s_notification.Notify(new NotificationMessage
                     {
                         Severity = NotificationSeverity.Error,
-                        Summary = @languageService.GetString("Home-LoadDirectoryFailed"),
+                        Summary = @s_languageService.GetString("Home-LoadDirectoryFailed"),
                         // maybe should show the program error message
                         Detail = "err message",
                         Duration = 4000
@@ -92,7 +129,7 @@ else
             s_notification.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = @languageService.GetString("Home-InvalidPath"),
+                    Summary = @s_languageService.GetString("Home-InvalidPath"),
                     Duration = 4000
                 });
         }
@@ -130,9 +167,18 @@ else
             s_notification.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = @languageService.GetString("Home-GoBackFaild"),
+                    Summary = @s_languageService.GetString("Home-GoBackFaild"),
                     Duration = 4000
                 });
         }
+    }
+
+    /// <summary>
+    ///  每一行的选中事件，这个处理函数应该很复杂
+    /// </summary>
+    /// <param name="item"></param>
+    private void OnRowSelect(HomeContent item)
+    {
+        s_logger.LogInfo($"选中的项: {item.Content}");
     }
 }

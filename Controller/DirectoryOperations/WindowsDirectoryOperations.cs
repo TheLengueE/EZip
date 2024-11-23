@@ -4,10 +4,12 @@
     class WindowsDirectoryOperations : IDirectory
     {
         public string NowPath { get; set; }
+        private readonly EasyLogger _logger;
 
-        public WindowsDirectoryOperations()
+        public WindowsDirectoryOperations(EasyLogger logger)
         {
             NowPath = "C:\\";
+            _logger = logger;
         }
 
 

@@ -1,5 +1,5 @@
 ﻿@using EZip.Controller
-@inject LocalLanguageService languageService
+@inject LocalLanguageService s_languageService
 
 <div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
@@ -16,21 +16,21 @@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> 
-                @languageService.GetString("Menu1")
+                @s_languageService.GetString("Menu1")
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="counter">
                 <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> 
-                @languageService.GetString("Menu2")
+                @s_languageService.GetString("Menu2")
             </NavLink>
         </div>
 
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="weather">
                 <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> 
-                @languageService.GetString("Menu3")
+                @s_languageService.GetString("Menu3")
             </NavLink>
         </div>
 
