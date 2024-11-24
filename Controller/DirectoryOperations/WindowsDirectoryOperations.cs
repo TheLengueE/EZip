@@ -41,6 +41,7 @@
                                 var fileInfo = new FileInfo(filePath);
                                 return new HomeContent
                                 {
+                                    Type = ContentType.k_file,
                                     Content = fileInfo.Name,                      
                                     CreateTime = fileInfo.CreationTime,            
                                     UpdateTime = fileInfo.LastWriteTime,           
@@ -95,9 +96,11 @@
                                 var directoryInfo = new DirectoryInfo(directoryPath);
                                 return new HomeContent
                                 {
+                                    Type = ContentType.k_directory,
                                     Content = directoryInfo.Name,                
                                     CreateTime = directoryInfo.CreationTime,    
                                     UpdateTime = directoryInfo.LastWriteTime,    
+                                    AbsolutePath = directoryInfo.FullName,
                                     SizeInMB = null                              
                                 };
                             })

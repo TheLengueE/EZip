@@ -59,7 +59,6 @@
 
     protected override void OnInitialized()
     {
-        pathStack.Push(s_directory.NowPath);
         LoadDirectoryItems(s_directory.NowPath);
         currentPath = s_directory.NowPath;
     }
@@ -121,9 +120,19 @@
     /// </summary>
     private void HandleKeyDown(KeyboardEventArgs e)
     {
-        if (!string.IsNullOrEmpty(currentPath))
+        if(e.Key == "Enter")
         {
+            string message = $"enter event had be call notify pathCount is {pathStack.Count}";
+
             LoadDirectoryItems(currentPath);
+
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Warning,
+                    Summary = message,
+                    Duration = 4000
+                });
+
         }
     }
 
@@ -139,6 +148,14 @@
 
             string previousPath = pathStack.Peek();
 
+            // string message = $"count now is {pathStack.Count}";
+            // s_notification.Notify(new NotificationMessage
+            //     {
+            //         Severity = NotificationSeverity.Warning,
+            //         Summary = message,
+            //         Duration = 4000
+            //     });
+
             LoadDirectoryItems(previousPath);
         }
         else
@@ -152,15 +169,27 @@
         }
     }
 
+    /// <summary>
+    /// 鼠标和触摸屏点击一行时会触发该事件
+    /// </summary>
+    /// <param name="item"></param>
     private void OnItemClick(HomeContent item)
     {
-        s_notification.Notify(new NotificationMessage
+        if (item.Type == ContentType.k_file)
+        {
+
+        }
+        else if (item.Type == ContentType.k_directory)
+        {
+            if (!string.IsNullOrEmpty(item.AbsolutePath) )
             {
-                Severity = NotificationSeverity.Info,
-                Summary = @s_languageService.GetString("Home-LoadDirectoryFailed"),
-                // maybe should show the program error message
-                Detail = item.Content,
-                Duration = 4000
-            });
+                LoadDirectoryItems(item.AbsolutePath);
+            }
+            else
+            {
+                 
+                
+            }
+        }
     }
 }

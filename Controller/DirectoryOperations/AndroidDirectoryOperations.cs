@@ -44,6 +44,7 @@
                                     Content = fileInfo.Name,
                                     CreateTime = fileInfo.CreationTime,
                                     UpdateTime = fileInfo.LastWriteTime,
+                                    //AbsolutePath = fileInfo.FullName,
                                     SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)
                                 };
                             })
