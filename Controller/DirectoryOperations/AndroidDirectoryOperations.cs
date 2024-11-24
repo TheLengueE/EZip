@@ -35,7 +35,20 @@
                 {
                     if (Directory.Exists(path))
                     {
-                        var files = Directory.GetFiles(path);
+                        var files = Directory.GetFiles(path)
+                            .Select(filePath =>
+                            {
+                                var fileInfo = new FileInfo(filePath);
+                                return new HomeContent
+                                {
+                                    Content = fileInfo.Name,
+                                    CreateTime = fileInfo.CreationTime,
+                                    UpdateTime = fileInfo.LastWriteTime,
+                                    SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)
+                                };
+                            })
+                            .ToList();
+
                         response.ResponseData = files;
                         response.IsSuccessful = true;
                     }
@@ -76,7 +89,20 @@
                 {
                     if ((Directory.Exists(path)))
                     {
-                        var directories = Directory.GetDirectories(path);
+                        var directories = Directory.GetDirectories(path)
+                            .Select(directoryPath =>
+                            {
+                                var directoryInfo = new DirectoryInfo(directoryPath);
+                                return new HomeContent
+                                {
+                                    Content = directoryInfo.Name,
+                                    CreateTime = directoryInfo.CreationTime,
+                                    UpdateTime = directoryInfo.LastWriteTime,
+                                    SizeInMB = null
+                                };
+                            })
+                            .ToList();
+
                         response.ResponseData = directories;
                         response.IsSuccessful = true;
                     }

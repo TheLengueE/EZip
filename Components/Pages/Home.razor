@@ -28,53 +28,32 @@
     <div style="flex: 1; text-align: right;">大小</div>
 </div>
 
-<RadzenDataList Data="@items" TItem="HomeContent" AllowPaging="true" PageSize="50">
-    <Template Context="item">
-        <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0;">
-            <!-- 文件/目录名称 -->
-            <div style="flex: 1; font-weight: bold;">
-                @item.Content
+@if (directoryItems != null && directoryItems.Any())
+{
+    <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="true" PageSize="8">
+        <Template Context="item">
+            <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0; cursor: pointer;"
+                 @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
+                <!-- 文件/目录名称 -->
+                <div style="flex: 1;">@item.Content</div>
+                <!-- 创建时间 -->
+                <div style="flex: 1; text-align: center;">@item.CreateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
+                <!-- 更新时间 -->
+                <div style="flex: 1; text-align: center;">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
+                <!-- 文件大小 -->
+                <div style="flex: 1; text-align: right;">
+                    @if (item.SizeInMB.HasValue)
+                    {
+                        @($"{item.SizeInMB.Value:F2} MB")
+                    }
+                 </div>
             </div>
-            <!-- 创建时间 -->
-            <div style="flex: 1; text-align: center;">
-                @item.CreateTime.ToString("yyyy/MM/dd HH:mm:ss")
-            </div>
-            <!-- 更新时间 -->
-            <div style="flex: 1; text-align: center;">
-                @item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")
-            </div>
-            <!-- 文件大小 -->
-            <div style="flex: 1; text-align: right;">
-                @if (item.SizeInMB.HasValue)
-                {
-                    @($"{item.SizeInMB.Value:F2} MB")
-                }
-             </div>
-        </div>
-    </Template>
-</RadzenDataList>
+        </Template>
+    </RadzenDataList>
+}
 
 @code {
-
-    private List<HomeContent> items = new List<HomeContent>
-    {
-        new HomeContent
-        {
-            Content = "File1.txt",
-            CreateTime = DateTime.Now.AddDays(-10),
-            UpdateTime = DateTime.Now.AddDays(-5),
-            SizeInMB = 2.5
-        },
-        new HomeContent
-        {
-            Content = "Folder1",
-            CreateTime = DateTime.Now.AddDays(-20),
-            UpdateTime = DateTime.Now.AddDays(-15),
-            SizeInMB = null // 文件夹
-        }
-    };
-
-    private List<string> directoryItems = new List<string>();
+    private List<HomeContent> directoryItems = new List<HomeContent>();
     private Stack<string> pathStack = new Stack<string>();
     string currentPath = "";
 
@@ -105,8 +84,8 @@
 
             if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
             {
-                var directories = appResponseDirectories.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
-                var files = appResponseFiles.ResponseData as IEnumerable<string> ?? Enumerable.Empty<string>();
+                var directories = appResponseDirectories.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
+                var files = appResponseFiles.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
 
                 directoryItems = directories.Concat(files).ToList();
                 currentPath = path;
@@ -173,12 +152,15 @@
         }
     }
 
-    /// <summary>
-    ///  每一行的选中事件，这个处理函数应该很复杂
-    /// </summary>
-    /// <param name="item"></param>
-    private void OnRowSelect(HomeContent item)
+    private void OnItemClick(HomeContent item)
     {
-        s_logger.LogInfo($"选中的项: {item.Content}");
+        s_notification.Notify(new NotificationMessage
+            {
+                Severity = NotificationSeverity.Info,
+                Summary = @s_languageService.GetString("Home-LoadDirectoryFailed"),
+                // maybe should show the program error message
+                Detail = item.Content,
+                Duration = 4000
+            });
     }
 }
