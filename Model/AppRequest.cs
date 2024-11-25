@@ -3,7 +3,7 @@
     public enum RequestType
     {
         k_showDirectory,
-        k_second 
+        k_openFile
     }
 
     public class AppRequest

@@ -41,10 +41,10 @@
                                 var fileInfo = new FileInfo(filePath);
                                 return new HomeContent
                                 {
+                                    Type = ContentType.k_file,
                                     Content = fileInfo.Name,
                                     CreateTime = fileInfo.CreationTime,
                                     UpdateTime = fileInfo.LastWriteTime,
-                                    //AbsolutePath = fileInfo.FullName,
                                     SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)
                                 };
                             })
@@ -96,9 +96,11 @@
                                 var directoryInfo = new DirectoryInfo(directoryPath);
                                 return new HomeContent
                                 {
+                                    Type = ContentType.k_directory,
                                     Content = directoryInfo.Name,
                                     CreateTime = directoryInfo.CreationTime,
                                     UpdateTime = directoryInfo.LastWriteTime,
+                                    AbsolutePath = directoryInfo.FullName,
                                     SizeInMB = null
                                 };
                             })

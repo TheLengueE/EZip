@@ -42,9 +42,10 @@
                                 return new HomeContent
                                 {
                                     Type = ContentType.k_file,
-                                    Content = fileInfo.Name,                      
-                                    CreateTime = fileInfo.CreationTime,            
-                                    UpdateTime = fileInfo.LastWriteTime,           
+                                    Content = fileInfo.Name,
+                                    CreateTime = fileInfo.CreationTime,
+                                    UpdateTime = fileInfo.LastWriteTime,
+                                    AbsolutePath = fileInfo.FullName,
                                     SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2) 
                                 };
                             })
@@ -88,25 +89,30 @@
             {
                 try
                 {
-                    if ((Directory.Exists(path)))
+                    if (Directory.Exists(path))
                     {
                         var directories = Directory.GetDirectories(path)
+                            .Where(directoryPath =>
+                            {
+                                var attributes = File.GetAttributes(directoryPath);
+                                return (attributes & FileAttributes.Hidden) == 0;    // exclude hidden directories
+                            })
                             .Select(directoryPath =>
                             {
                                 var directoryInfo = new DirectoryInfo(directoryPath);
                                 return new HomeContent
                                 {
                                     Type = ContentType.k_directory,
-                                    Content = directoryInfo.Name,                
-                                    CreateTime = directoryInfo.CreationTime,    
-                                    UpdateTime = directoryInfo.LastWriteTime,    
+                                    Content = directoryInfo.Name,
+                                    CreateTime = directoryInfo.CreationTime,
+                                    UpdateTime = directoryInfo.LastWriteTime,
                                     AbsolutePath = directoryInfo.FullName,
-                                    SizeInMB = null                              
+                                    SizeInMB = null
                                 };
                             })
                             .ToList();
 
-                        response.ResponseData = directories; 
+                        response.ResponseData = directories;
                         response.IsSuccessful = true;
                     }
                     else
@@ -122,12 +128,12 @@
                     response.IsSuccessful = false;
                 }
             }
-            else 
+            else
             {
                 response.ErrorMessage = "Invalid request data";
                 response.IsSuccessful = false;
             }
-          
+
             return response;
         }
 

@@ -12,5 +12,7 @@
         public AppResponse CopyFile(AppRequest request);
 
         public AppResponse RenameFile(AppRequest request);
+
+        public AppResponse OpenFile(AppRequest request);
     }
 }

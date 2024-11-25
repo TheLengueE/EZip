@@ -88,7 +88,14 @@
 
                 directoryItems = directories.Concat(files).ToList();
                 currentPath = path;
-                pathStack.Push(path);
+                if (pathStack.Count == 0)
+                {
+                    pathStack.Push(path);
+                }
+                else if (pathStack.Peek() != path)
+                {
+                    pathStack.Push(path);
+                }
             }
             else
             {
@@ -142,19 +149,12 @@
     /// </summary>
     private void GoBack()
     {
-        if (pathStack.Count > 2 )
+        Console.WriteLine($"pathStack count is {pathStack.Count}");
+        if (pathStack.Count > 1 )
         {
             pathStack.Pop();
 
             string previousPath = pathStack.Peek();
-
-            // string message = $"count now is {pathStack.Count}";
-            // s_notification.Notify(new NotificationMessage
-            //     {
-            //         Severity = NotificationSeverity.Warning,
-            //         Summary = message,
-            //         Duration = 4000
-            //     });
 
             LoadDirectoryItems(previousPath);
         }
@@ -175,21 +175,41 @@
     /// <param name="item"></param>
     private void OnItemClick(HomeContent item)
     {
+
         if (item.Type == ContentType.k_file)
         {
+            var request = new AppRequest
+                {
+                    RequestType = RequestType.k_openFile,
+                    RequestData = item.AbsolutePath
+                };
 
+            var response = s_file.OpenFile(request);
+
+            if ( !response.IsSuccessful )
+            {
+                s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = response.ErrorMessage,
+                        Duration = 4000
+                    });
+            }
         }
-        else if (item.Type == ContentType.k_directory)
+
+        if (item.Type == ContentType.k_directory)
         {
             if (!string.IsNullOrEmpty(item.AbsolutePath) )
             {
+                // s_notification.Notify(new NotificationMessage
+                //     {
+                //         Severity = NotificationSeverity.Warning,
+                //         Summary = item.AbsolutePath,
+                //         Duration = 4000
+                //     });
                 LoadDirectoryItems(item.AbsolutePath);
             }
-            else
-            {
-                 
-                
-            }
+
         }
     }
 }
