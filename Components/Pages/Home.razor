@@ -23,34 +23,49 @@
 
 <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
     <div style="flex: 1;">名称</div>
-    <div style="flex: 1; text-align: center;">创建时间</div>
+    @* <div style="flex: 1; text-align: center;">创建时间</div> *@
     <div style="flex: 1; text-align: center;">更新时间</div>
     <div style="flex: 1; text-align: right;">大小</div>
 </div>
 
-@if (directoryItems != null && directoryItems.Any())
-{
-    <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="true" PageSize="8">
-        <Template Context="item">
-            <div style="display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #e0e0e0; cursor: pointer;"
-                 @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
-                <!-- 文件/目录名称 -->
-                <div style="flex: 1;">@item.Content</div>
-                <!-- 创建时间 -->
-                <div style="flex: 1; text-align: center;">@item.CreateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
-                <!-- 更新时间 -->
-                <div style="flex: 1; text-align: center;">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
-                <!-- 文件大小 -->
-                <div style="flex: 1; text-align: right;">
-                    @if (item.SizeInMB.HasValue)
+<div style="flex: 1; overflow-y: auto; max-height: calc(100vh - 150px);">
+    @if (directoryItems != null && directoryItems.Any())
+    {
+        <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
+            <Template Context="item">
+                <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer;"
+                     @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
+
+                    <!-- 文件/目录类型图标 -->
+                    @if (item.Type == ContentType.k_directory)
                     {
-                        @($"{item.SizeInMB.Value:F2} MB")
+                        @("\ud83d\udcc1")
                     }
-                 </div>
-            </div>
-        </Template>
-    </RadzenDataList>
-}
+                    else if (item.Type == ContentType.k_file)
+                    {
+                        @("\ud83d\udcc4")
+                    }
+
+                    <!-- 文件/目录名称 -->
+                    <div style="flex: 1;">@item.Content</div>
+
+                    <!-- 更新时间 -->
+                    <div style="flex: 1; text-align: center;">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
+
+                    <!-- 文件大小 -->
+                    <div style="flex: 1; text-align: right;">
+
+                        @if (item.SizeInMB.HasValue)
+                        {
+                            @($"{item.SizeInMB.Value:F2} MB")
+                        }
+                    </div>
+                </div>
+            </Template>
+        </RadzenDataList>
+    }
+</div>
+
 
 @code {
     private List<HomeContent> directoryItems = new List<HomeContent>();
@@ -79,12 +94,23 @@
         if (Directory.Exists(path))
         {
             var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
+
             var appResponseFiles = s_directory.ShowDirectoryFiles(request);
 
             if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
             {
                 var directories = appResponseDirectories.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
+
                 var files = appResponseFiles.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
+
+                // int count = files.Count();
+                // s_notification.Notify(new NotificationMessage
+                //     {
+                //         Severity = NotificationSeverity.Info,
+                //         Summary =$"file get success,there are {count} file",
+                //         Detail = "err message",
+                //         Duration = 4000
+                //     });
 
                 directoryItems = directories.Concat(files).ToList();
                 currentPath = path;
@@ -145,7 +171,6 @@
 
     /// <summary>
     ///  this function is used to go back to the previous directory
-    ///  还有bug,先进行跳转再进行回退，回退到跟路径没提示，不合理
     /// </summary>
     private void GoBack()
     {

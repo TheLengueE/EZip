@@ -3,6 +3,7 @@
     public enum RequestType
     {
         k_showDirectory,
+        k_showFile,
         k_openFile
     }
 

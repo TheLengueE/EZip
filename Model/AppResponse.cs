@@ -16,6 +16,5 @@
         /// Stores any additional data related to the response, similar to a void* in C.
         /// </summary>
         public object? ResponseData { get; set; }
-
     }
 }

@@ -3,8 +3,8 @@
 namespace EZip.Controller
 {
     using Model;
+
 #if ANDROID
-    using Android.App;
     using Android.Content;
     using Android.Net;
     using AndroidX.Core.Content;

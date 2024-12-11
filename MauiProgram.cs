@@ -16,14 +16,13 @@ namespace EZip
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                 });
 
+            // add Blazor support
             builder.Services.AddMauiBlazorWebView();
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
             //builder.Logging.AddDebug();
 #endif
-
-
 
             // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
@@ -40,7 +39,6 @@ namespace EZip
             builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
             builder.Services.AddSingleton<IFile, AndroidFileOperations>();
 #endif
-
 
             // Transient services
 

@@ -1,6 +1,16 @@
 ﻿namespace EZip.Controller
 {
-    using Microsoft.Extensions.Logging;
+#if  ANDROID
+    using System;
+    using System.IO;
+    using Android.App;
+    using Android.Content;
+    using Android.OS;
+    using Android.Runtime;
+#endif
+
+
+
     using Model;
     public class AndroidDirectoryOperations : IDirectory
     {
@@ -20,6 +30,7 @@
             return response;
         }
 
+#if ANDROID
         /// <summary>
         /// 
         /// </summary>
@@ -31,49 +42,47 @@
 
             if (request.RequestData is string path)
             {
-                try
+                if (Directory.Exists(path)) 
                 {
-                    if (Directory.Exists(path))
-                    {
-                        var files = Directory.GetFiles(path)
-                            .Select(filePath =>
+                    var files = Directory.GetFiles(path)
+                        .Select(filePath =>
+                        {
+                            var fileInfo = new FileInfo(filePath);
+                            return new HomeContent
                             {
-                                var fileInfo = new FileInfo(filePath);
-                                return new HomeContent
-                                {
-                                    Type = ContentType.k_file,
-                                    Content = fileInfo.Name,
-                                    CreateTime = fileInfo.CreationTime,
-                                    UpdateTime = fileInfo.LastWriteTime,
-                                    SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)
-                                };
-                            })
-                            .ToList();
+                                Type = ContentType.k_file,
+                                Content = fileInfo.Name,
+                                CreateTime = fileInfo.CreationTime,
+                                UpdateTime = fileInfo.LastWriteTime,
+                                AbsolutePath = fileInfo.FullName,
+                                SizeInMB = fileInfo.Length / 1024 / 1024
+                            };
+                        })
+                        .ToList();
 
-                        response.ResponseData = files;
-                        response.IsSuccessful = true;
-                    }
-                    else
-                    {
-                        response.ErrorMessage = "Directory does not exist";
-                        response.IsSuccessful = false;
-                        Console.WriteLine("Directory does not exist");
-                    }
+                    response.ResponseData = files;
+                    response.IsSuccessful = true;
                 }
-                catch (Exception e)
+                else
                 {
-                    response.ErrorMessage = e.Message;
+                    response.ErrorMessage = "Directory does not exist";
                     response.IsSuccessful = false;
                 }
+
             }
-            else
-            {
-                response.ErrorMessage = "Invalid request data";
-                response.IsSuccessful = false;
-            }
+
+             
+            return response;
+        }
+#else
+        public AppResponse ShowDirectoryFiles(AppRequest request)
+        {
+            AppResponse response = new AppResponse();
+
 
             return response;
         }
+#endif
 
         /// <summary>
         /// 
@@ -113,7 +122,6 @@
                     {
                         response.ErrorMessage = "Directory does not exist";
                         response.IsSuccessful = false;
-                        Console.WriteLine("Directory does not exist");
                     }
                 }
                 catch (Exception e)
@@ -127,7 +135,6 @@
                 response.ErrorMessage = "Invalid request data";
                 response.IsSuccessful = false;
             }
-
             return response;
         }
 
