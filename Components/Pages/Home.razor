@@ -11,6 +11,7 @@
 @inject EasyLogger s_logger
 @inject LocalLanguageService s_languageService
 
+@*最上方的路径显示输入栏和路径回退按钮*@
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
     <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" Click="GoBack" />
     <RadzenTextBox @bind-Value="currentPath" Placeholder="输入目标路径" Style="flex-grow: 1;" @onkeydown="HandleKeyDown" />
@@ -21,19 +22,28 @@
 
 <hr />
 
-<div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
-    <div style="flex: 1;">名称</div>
-    @* <div style="flex: 1; text-align: center;">创建时间</div> *@
-    <div style="flex: 1; text-align: center;">更新时间</div>
-    <div style="flex: 1; text-align: right;">大小</div>
+
+@* 开始压缩的按钮 *@
+<div style="padding: 10px;">
+    <RadzenButton Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressMode" />
 </div>
 
+
+
+@* 表格包含标题和内容部分 *@
 <div style="flex: 1; overflow-y: auto; max-height: calc(100vh - 150px);">
     @if (directoryItems != null && directoryItems.Any())
     {
+        <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
+            <div style="flex: 1;">名称</div>
+            @* <div style="flex: 1; text-align: center;">创建时间</div> *@
+            <div style="flex: 1; text-align: center;">更新时间</div>
+            <div style="flex: 1; text-align: right;">大小</div>
+        </div>
+
         <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
             <Template Context="item">
-                <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer;"
+                <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer; background-color: @(selectedItems.Contains(item) ? "#dff0d8" : "transparent");"
                      @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
 
                     <!-- 文件/目录类型图标 -->
@@ -54,7 +64,6 @@
 
                     <!-- 文件大小 -->
                     <div style="flex: 1; text-align: right;">
-
                         @if (item.SizeInMB.HasValue)
                         {
                             @($"{item.SizeInMB.Value:F2} MB")
@@ -64,12 +73,20 @@
             </Template>
         </RadzenDataList>
     }
+    else
+    {
+        <div style="text-align: center; padding: 20px;">暂无数据</div>
+    }
 </div>
+
 
 
 @code {
     private List<HomeContent> directoryItems = new List<HomeContent>();
     private Stack<string> pathStack = new Stack<string>();
+    private List<HomeContent> selectedItems = new(); // 已选中的项目
+    private string compressButtonText = "选择压缩项目"; // 按钮文本
+    private bool isCompressMode = false; // 当前是否处于选择压缩项目模式
     string currentPath = "";
 
     protected override void OnInitialized()
@@ -77,7 +94,6 @@
         LoadDirectoryItems(s_directory.NowPath);
         currentPath = s_directory.NowPath;
     }
-
 
     /// <summary>
     /// Load the items in the directory
@@ -200,7 +216,22 @@
     /// <param name="item"></param>
     private void OnItemClick(HomeContent item)
     {
+        if (isCompressMode)
+        {
+            if (selectedItems.Contains(item))
+            {
+                selectedItems.Remove(item); // 取消选择
+            }
+            else
+            {
+                selectedItems.Add(item); // 选择
+            }
 
+            StateHasChanged(); // 重新渲染以显示高亮
+            return;
+        }
+
+        // 直接打开文件
         if (item.Type == ContentType.k_file)
         {
             var request = new AppRequest
@@ -222,6 +253,7 @@
             }
         }
 
+        // 打开非目录，直接打开一个可执行文件
         if (item.Type == ContentType.k_directory)
         {
             if (!string.IsNullOrEmpty(item.AbsolutePath) )
@@ -235,6 +267,28 @@
                 LoadDirectoryItems(item.AbsolutePath);
             }
 
+        }
+    }
+
+
+    /// <summary>
+    /// 切换压缩模式
+    /// </summary>
+    private void ToggleCompressMode()
+    {
+        if (!isCompressMode)
+        {
+            // 进入选择模式
+            isCompressMode = true;
+            compressButtonText = "开始压缩";
+            selectedItems.Clear(); // 清空之前的选择
+        }
+        else
+        {
+            // 开始压缩操作
+            //  CompressSelectedItems();
+            isCompressMode = false;
+            compressButtonText = "选择压缩项目";
         }
     }
 }
