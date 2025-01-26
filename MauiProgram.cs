@@ -31,6 +31,8 @@ namespace EZip
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
 
+            builder.Services.AddSingleton<WindowsCompress>();
+
             // when use visual studio, change different platform define different services
 #if WINDOWS
             builder.Services.AddSingleton<IDirectory, WindowsDirectoryOperations>();

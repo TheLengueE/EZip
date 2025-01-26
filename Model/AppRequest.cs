@@ -4,7 +4,8 @@
     {
         k_showDirectory,
         k_showFile,
-        k_openFile
+        k_openFile,
+        k_compressFile
     }
 
     public class AppRequest

@@ -10,6 +10,7 @@
 @inject NotificationService s_notification
 @inject EasyLogger s_logger
 @inject LocalLanguageService s_languageService
+@inject WindowsCompress s_windowsCompress
 
 @*最上方的路径显示输入栏和路径回退按钮*@
 <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
@@ -44,7 +45,7 @@
         <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
             <Template Context="item">
                 <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer; background-color: @(selectedItems.Contains(item) ? "#dff0d8" : "transparent");"
-                     @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
+                @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
 
                     <!-- 文件/目录类型图标 -->
                     @if (item.Type == ContentType.k_directory)
@@ -270,7 +271,6 @@
         }
     }
 
-
     /// <summary>
     /// 切换压缩模式
     /// </summary>
@@ -285,10 +285,32 @@
         }
         else
         {
+            string[] contents = selectedItems
+            .Select(item => currentPath + item.Content)
+            .ToArray();
+
+            string outputFilePath = Path.Combine(currentPath, "output.zip");
+
+            HomeCompressMessage homeCompressMessage = new HomeCompressMessage
+             {
+                    CompressPath = contents,
+                    OutputFilePath = outputFilePath,
+                    compressType = CompressType.k_zip
+             };
+
+            AppRequest request = new AppRequest
+             {
+                    RequestType = RequestType.k_compressFile,
+                    RequestData =  homeCompressMessage 
+             };
+
             // 开始压缩操作
-            //  CompressSelectedItems();
+            s_windowsCompress.ZipCompress(request);
+
             isCompressMode = false;
             compressButtonText = "选择压缩项目";
+            selectedItems.Clear(); // 清空之前的选择
+            StateHasChanged();
         }
     }
 }
