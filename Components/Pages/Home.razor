@@ -12,74 +12,102 @@
 @inject LocalLanguageService s_languageService
 @inject WindowsCompress s_windowsCompress
 
-@*最上方的路径显示输入栏和路径回退按钮*@
-<div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
-    <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" Click="GoBack" />
-    <RadzenTextBox @bind-Value="currentPath" Placeholder="输入目标路径" Style="flex-grow: 1;" @onkeydown="HandleKeyDown" />
-    <RadzenButton Text=@s_languageService.GetString("Home-Confirm") ButtonStyle="ButtonStyle.Primary" Click="() => LoadDirectoryItems(currentPath)" />
-</div>
 
-<RadzenNotification />
+@*最顶层的div*@
+<div>
+    @*最上方的路径显示输入栏和路径回退按钮*@
+    <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
+        <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" Click="GoBack" />
+        <RadzenTextBox @bind-Value="currentPath" Placeholder="输入目标路径" Style="flex-grow: 1;" @onkeydown="HandleKeyDown" />
+        <RadzenButton Text=@s_languageService.GetString("Home-Confirm") ButtonStyle="ButtonStyle.Primary" Click="() => LoadDirectoryItems(currentPath)" />
+    </div>
 
-<hr />
+    <RadzenNotification />
 
+    <hr />
 
-@* 开始压缩的按钮 *@
-<div style="padding: 10px;">
-    <RadzenButton Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressMode" />
-</div>
+    @* 开始压缩的按钮 *@
+    <div style="padding: 10px;">
+        <RadzenButton Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressMode" />
+    </div>
 
+    @* 表格包含标题和内容部分 *@
+    <div style="flex: 1; overflow-y: auto; max-height: calc(100vh - 150px);">
+        @if (directoryItems != null && directoryItems.Any())
+        {
+            <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
+                <div style="flex: 1;">名称</div>
+                @* <div style="flex: 1; text-align: center;">创建时间</div> *@
+                <div style="flex: 1; text-align: center;">更新时间</div>
+                <div style="flex: 1; text-align: right;">大小</div>
+            </div>
 
+            <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
+                <Template Context="item">
+                    <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer; background-color: @(selectedItems.Contains(item) ? "#dff0d8" : "transparent");"
+                    @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
 
-@* 表格包含标题和内容部分 *@
-<div style="flex: 1; overflow-y: auto; max-height: calc(100vh - 150px);">
-    @if (directoryItems != null && directoryItems.Any())
-    {
-        <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
-            <div style="flex: 1;">名称</div>
-            @* <div style="flex: 1; text-align: center;">创建时间</div> *@
-            <div style="flex: 1; text-align: center;">更新时间</div>
-            <div style="flex: 1; text-align: right;">大小</div>
-        </div>
-
-        <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
-            <Template Context="item">
-                <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer; background-color: @(selectedItems.Contains(item) ? "#dff0d8" : "transparent");"
-                @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
-
-                    <!-- 文件/目录类型图标 -->
-                    @if (item.Type == ContentType.k_directory)
-                    {
-                        @("\ud83d\udcc1")
-                    }
-                    else if (item.Type == ContentType.k_file)
-                    {
-                        @("\ud83d\udcc4")
-                    }
-
-                    <!-- 文件/目录名称 -->
-                    <div style="flex: 1;">@item.Content</div>
-
-                    <!-- 更新时间 -->
-                    <div style="flex: 1; text-align: center;">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
-
-                    <!-- 文件大小 -->
-                    <div style="flex: 1; text-align: right;">
-                        @if (item.SizeInMB.HasValue)
+                        <!-- 文件/目录类型图标 -->
+                        @if (item.Type == ContentType.k_directory)
                         {
-                            @($"{item.SizeInMB.Value:F2} MB")
+                            @("\ud83d\udcc1")
                         }
+                        else if (item.Type == ContentType.k_file)
+                        {
+                            @("\ud83d\udcc4")
+                        }
+
+                        <!-- 文件/目录名称 -->
+                        <div style="flex: 1;">@item.Content</div>
+
+                        <!-- 更新时间 -->
+                        <div style="flex: 1; text-align: center;">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
+
+                        <!-- 文件大小 -->
+                        <div style="flex: 1; text-align: right;">
+                            @if (item.SizeInMB.HasValue)
+                            {
+                                @($"{item.SizeInMB.Value:F2} MB")
+                            }
+                        </div>
                     </div>
-                </div>
-            </Template>
-        </RadzenDataList>
-    }
-    else
+                </Template>
+            </RadzenDataList>
+        }
+        else
+        {
+            <div style="text-align: center; padding: 20px;">暂无数据</div>
+        }
+    </div>
+
+    @*最顶层的div*@
+    @if (showDialog)
     {
-        <div style="text-align: center; padding: 20px;">暂无数据</div>
+        <div style="position: absolute;
+                    top: 0; left: 0;
+                    width: 100%; height: 100%;
+                    background: rgba(0, 0, 0, 0.5);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;">
+
+            <!-- 弹窗本体 -->
+            <div style="background: white;
+                        padding: 20px;
+                        border-radius: 6px;">
+                @* <HomeDialog /> *@
+
+                <RadzenCard Style="max-width:600px; margin:20px auto;">
+                    <h3>选择商品</h3>
+                </RadzenCard>
+
+                <!-- 关闭按钮 -->
+                <button @onclick="ConfirmCompress">压缩</button>
+                <button @onclick="CloseModal">关闭</button>
+            </div>
+        </div>
     }
 </div>
-
 
 
 @code {
@@ -90,6 +118,48 @@
     private bool isCompressMode = false; // 当前是否处于选择压缩项目模式
     string currentPath = "";
 
+    private bool showDialog = false;
+
+    // 在弹窗中确定压缩文件
+    private void ConfirmCompress()
+    {
+        // 下面的操作应该在窗口中进行了确定后再执行
+        string[] contents = selectedItems
+        .Select(item => currentPath + item.Content)
+        .ToArray();
+
+        string outputFilePath = Path.Combine(currentPath, "output.zip");
+
+        HomeCompressMessage homeCompressMessage = new HomeCompressMessage
+            {
+                CompressPath = contents,
+                OutputFilePath = outputFilePath,
+                compressType = CompressType.k_zip
+            };
+
+        AppRequest request = new AppRequest
+            {
+                RequestType = RequestType.k_compressFile,
+                RequestData = homeCompressMessage
+            };
+
+        // 开始压缩操作
+        s_windowsCompress.ZipCompress(request);
+
+        isCompressMode = false;
+        compressButtonText = "选择压缩项目";
+        selectedItems.Clear(); // 清空之前的选择
+        StateHasChanged();
+        // ToDo 成功和失败后的处理
+    }
+
+    // 关闭弹窗
+    private void CloseModal()
+    {
+        showDialog = false;
+    }
+
+    // 框架自带的初始化函数
     protected override void OnInitialized()
     {
         LoadDirectoryItems(s_directory.NowPath);
@@ -102,6 +172,10 @@
     /// <param name="path">Total path</param>
     private void LoadDirectoryItems(string path)
     {
+        isCompressMode = false;
+        compressButtonText = "选择压缩项目";
+        selectedItems.Clear(); // 清空之前的选择
+
         AppRequest request = new AppRequest
             {
                 RequestType = RequestType.k_showDirectory,
@@ -191,7 +265,6 @@
     /// </summary>
     private void GoBack()
     {
-        Console.WriteLine($"pathStack count is {pathStack.Count}");
         if (pathStack.Count > 1 )
         {
             pathStack.Pop();
@@ -285,32 +358,9 @@
         }
         else
         {
-            string[] contents = selectedItems
-            .Select(item => currentPath + item.Content)
-            .ToArray();
-
-            string outputFilePath = Path.Combine(currentPath, "output.zip");
-
-            HomeCompressMessage homeCompressMessage = new HomeCompressMessage
-             {
-                    CompressPath = contents,
-                    OutputFilePath = outputFilePath,
-                    compressType = CompressType.k_zip
-             };
-
-            AppRequest request = new AppRequest
-             {
-                    RequestType = RequestType.k_compressFile,
-                    RequestData =  homeCompressMessage 
-             };
-
-            // 开始压缩操作
-            s_windowsCompress.ZipCompress(request);
-
-            isCompressMode = false;
-            compressButtonText = "选择压缩项目";
-            selectedItems.Clear(); // 清空之前的选择
+            showDialog = true;
             StateHasChanged();
+            return;
         }
     }
 }

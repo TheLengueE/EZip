@@ -4,6 +4,7 @@
 
     interface ICompress
     {
+        // 压缩
         public AppResponse ZipCompress(AppRequest request);
 
         public AppResponse SevenZipCompress(AppRequest request);

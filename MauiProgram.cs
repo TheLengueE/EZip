@@ -24,6 +24,11 @@ namespace EZip
             //builder.Logging.AddDebug();
 #endif
 
+            //builder.Services.AddRadzenComponents();
+            //builder.Services.AddRadzenCookieThemeService();
+            //builder.Services.AddRadzenQueryStringThemeService();
+
+
             // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
             //builder.Services.AddSingleton<EasyLogger>();

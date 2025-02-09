@@ -29,4 +29,12 @@
         public CompressType compressType { get; set; } = CompressType.k_zip;
     }
 
+    // 测试用的数据结构
+    public class Product
+    {
+        public int Id { get; set; }
+        public string Name { get; set; } = "";
+        public decimal Price { get; set; }
+    }
+
 }
