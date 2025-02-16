@@ -4,17 +4,8 @@
 
     interface ICompress
     {
-        // 压缩
-        public AppResponse ZipCompress(AppRequest request);
-
-        public AppResponse SevenZipCompress(AppRequest request);
-
-        public AppResponse RarCompress(AppRequest request);
-
-        public AppResponse TarCompress(AppRequest request);
-
-        public AppResponse TarGzCompress(AppRequest request);
-
+        // 压缩文件
+        public AppResponse CompressFile(AppRequest request);
 
         // 解压缩
         public AppResponse UnpackArchive(AppRequest request);

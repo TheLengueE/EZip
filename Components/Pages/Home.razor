@@ -84,26 +84,37 @@
     @if (showDialog)
     {
         <div style="position: absolute;
-                    top: 0; left: 0;
-                    width: 100%; height: 100%;
-                    background: rgba(0, 0, 0, 0.5);
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;">
+                top: 0; left: 0;
+                width: 100%; height: 100%;
+                background: rgba(0, 0, 0, 0.5);
+                display: flex;
+                align-items: center;
+                justify-content: center;">
 
             <!-- 弹窗本体 -->
             <div style="background: white;
-                        padding: 20px;
-                        border-radius: 6px;">
-                @* <HomeDialog /> *@
+                    padding: 20px;
+                    border-radius: 6px;
+                    width: 100%;
+                    max-width: 640px;">
+                <!-- 限制弹窗最大宽度 -->
 
                 <RadzenCard Style="max-width:600px; margin:20px auto;">
-                    <h3>选择商品</h3>
+                    <ChildContent>
+                        <!-- 输入框用于输入压缩文件名字 -->
+                        <RadzenTextBox @bind-Value="@compressFileName" Placeholder="输入压缩文件名字" Style="width: 100%; margin-bottom: 20px;" />
+
+                        <!-- 单选项选择框用于选择压缩格式 -->
+                        <RadzenDropDown @bind-Value="@selectedFormat" Data="@compressionFormats" Placeholder="选择压缩格式" Style="width: 100%; margin-bottom: 20px;" />
+
+                        <!-- 按钮区域 -->
+                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                            <RadzenButton Text="关闭" Click="CloseModal" ButtonStyle="ButtonStyle.Secondary" />
+                            <RadzenButton Text="压缩" Click="ConfirmCompress" ButtonStyle="ButtonStyle.Primary" />
+                        </div>
+                    </ChildContent>
                 </RadzenCard>
 
-                <!-- 关闭按钮 -->
-                <button @onclick="ConfirmCompress">压缩</button>
-                <button @onclick="CloseModal">关闭</button>
             </div>
         </div>
     }
@@ -119,23 +130,45 @@
     string currentPath = "";
 
     private bool showDialog = false;
+    private string selectedFormat = "ZIP";  // 单选时应该用 string 类型来存储一个压缩格式
+    private string compressFileName = "";
+    private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
 
     // 在弹窗中确定压缩文件
     private void ConfirmCompress()
     {
-        // 下面的操作应该在窗口中进行了确定后再执行
         string[] contents = selectedItems
         .Select(item => currentPath + item.Content)
         .ToArray();
 
-        string outputFilePath = Path.Combine(currentPath, "output.zip");
+        if (compressFileName is null) { 
+            compressFileName = "output.zip";
+        }
+
+        string outputFilePath = Path.Combine(currentPath, compressFileName);
 
         HomeCompressMessage homeCompressMessage = new HomeCompressMessage
             {
                 CompressPath = contents,
                 OutputFilePath = outputFilePath,
-                compressType = CompressType.k_zip
+                // compressType = CompressType.k_zip
             };
+
+        if (selectedFormat == "ZIP")
+        {
+            homeCompressMessage.compressType= CompressType.k_zip;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".zip";
+        }
+        else if (selectedFormat == "7Z")
+        {
+            homeCompressMessage.compressType = CompressType.k_sevenzip;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".7z";
+        }
+        else if (selectedFormat == "TAR")
+        {
+            homeCompressMessage.compressType = CompressType.k_tar;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".tar";
+        }
 
         AppRequest request = new AppRequest
             {
@@ -144,13 +177,36 @@
             };
 
         // 开始压缩操作
-        s_windowsCompress.ZipCompress(request);
+        var response =  s_windowsCompress.CompressFile(request);
 
         isCompressMode = false;
         compressButtonText = "选择压缩项目";
         selectedItems.Clear(); // 清空之前的选择
+
+        if (response.IsSuccessful)
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = @s_languageService.GetString("Home-CompressSuccess"),
+                    Duration = 4000
+                });
+        }
+        else
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = response.ErrorMessage,
+                    Duration = 4000
+                });
+        }
+
+        CloseModal();
+
+        compressFileName = "";
+
         StateHasChanged();
-        // ToDo 成功和失败后的处理
     }
 
     // 关闭弹窗

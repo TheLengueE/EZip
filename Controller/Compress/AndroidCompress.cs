@@ -3,7 +3,7 @@
     using Model;
     internal class AndroidCompress : ICompress
     {
-        public AppResponse ZipCompress(AppRequest request)
+        public AppResponse CompressFile(AppRequest request)
         {
             throw new System.NotImplementedException();
         }
