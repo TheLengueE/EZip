@@ -39,9 +39,18 @@
                             .Select(filePath =>
                             {
                                 var fileInfo = new FileInfo(filePath);
+                                var contentType = ContentType.k_file;
+
+                                // 检查文件扩展名
+                                var extension = fileInfo.Extension.ToLower();
+                                if (extension == ".zip" || extension == ".rar" || extension == ".7z" || extension== ".tar")
+                                {
+                                    contentType = ContentType.k_compress;
+                                }
+
                                 return new HomeContent
                                 {
-                                    Type = ContentType.k_file,
+                                    Type = contentType,
                                     Content = fileInfo.Name,
                                     CreateTime = fileInfo.CreationTime,
                                     UpdateTime = fileInfo.LastWriteTime,

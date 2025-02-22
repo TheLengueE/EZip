@@ -130,7 +130,7 @@
     string currentPath = "";
 
     private bool showDialog = false;
-    private string selectedFormat = "ZIP";  // 单选时应该用 string 类型来存储一个压缩格式
+    private string selectedFormat = "ZIP";  // 单选时用 string 类型来存储一个压缩格式
     private string compressFileName = "";
     private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
 
@@ -361,6 +361,42 @@
             return;
         }
 
+        // 解压压缩文件
+        if (item.Type == ContentType.k_compress)
+        {
+            HomeUnpackMessage homeUnpackMessage = new HomeUnpackMessage
+                {
+                    ArchivePath = item.AbsolutePath,
+                    OutputPath = currentPath
+                };
+            var request = new AppRequest
+                {
+                    RequestType = RequestType.k_k_unpackFile,
+                    RequestData =  homeUnpackMessage
+                };
+
+            var response = s_windowsCompress.UnpackArchive(request);
+
+            if (response.IsSuccessful)
+            {
+                s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Success,
+                        Summary = @s_languageService.GetString("Home-UnpackSuccess"),
+                        Duration = 4000
+                    });
+            }
+            else
+            {
+                s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = response.ErrorMessage,
+                        Duration = 4000
+                    });
+            }
+        }
+
         // 直接打开文件
         if (item.Type == ContentType.k_file)
         {
@@ -383,7 +419,7 @@
             }
         }
 
-        // 打开非目录，直接打开一个可执行文件
+        // 打开一个目录
         if (item.Type == ContentType.k_directory)
         {
             if (!string.IsNullOrEmpty(item.AbsolutePath) )
@@ -396,8 +432,8 @@
                 //     });
                 LoadDirectoryItems(item.AbsolutePath);
             }
-
         }
+        LoadDirectoryItems(currentPath);
     }
 
     /// <summary>
@@ -418,5 +454,10 @@
             StateHasChanged();
             return;
         }
+    }
+
+    private void UnpackMode(HomeContent item)
+    {
+        
     }
 }

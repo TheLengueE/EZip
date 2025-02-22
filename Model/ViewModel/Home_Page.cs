@@ -29,7 +29,15 @@
         public CompressType compressType { get; set; } = CompressType.k_zip;
     }
 
-    // 测试用的数据结构
+    // 当需要解压缩文件时，需要传递的数据结构，这包括这次需要解压缩的相关信息
+    // 后续再来进行扩展
+    public class HomeUnpackMessage
+    {
+        public string ArchivePath { get; set; } = string.Empty;
+        public string OutputPath { get; set; } = string.Empty;
+    }
+
+    //测试用的数据结构
     public class Product
     {
         public int Id { get; set; }

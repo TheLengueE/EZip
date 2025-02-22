@@ -1,6 +1,7 @@
 ﻿namespace EZip.Controller
 {
     using Model;
+    using SharpCompress.Archives;
     using SharpCompress.Common;
     using SharpCompress.Writers;
 
@@ -158,20 +159,60 @@
             throw new System.NotImplementedException();
         }
 
-        /// <summary>
-        /// 解压缩
-        /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
-        /// <exception cref="System.NotImplementedException"></exception>
-        public AppResponse UnpackArchive(AppRequest request)
+        public AppResponse UnpackArchive(AppRequest request) 
         {
-            throw new System.NotImplementedException();
+            AppResponse response = new AppResponse();
+            try
+            {
+                // 检查请求是否为 null
+                if (request == null)
+                {
+                    response.IsSuccessful = false;
+                    response.ErrorMessage = "Request cannot be null.";
+                    return response;
+                }
+
+                // 检查 RequestData 是否为 HomeCompressMessage 类型
+                if (request.RequestData is not HomeUnpackMessage unpackMessage)
+                {
+                    response.IsSuccessful = false;
+                    response.ErrorMessage = "Invalid request data.";
+                    return response;
+                }
+
+                Unpack(unpackMessage.ArchivePath,unpackMessage.OutputPath);
+                response.IsSuccessful = true;
+            }
+            catch 
+            {
+                response.IsSuccessful = false;
+                response.ErrorMessage = "An error occurred while unpacking the file.";
+            }
+            return response;
+        }
+
+        public void Unpack(string archivePath,string destinationPath)
+        {
+            using (var archive = ArchiveFactory.Open(archivePath))
+            {
+                foreach (var entry in archive.Entries)
+                {
+                    if (!entry.IsDirectory)
+                    {
+                        entry.WriteToDirectory(destinationPath, new ExtractionOptions()
+                        {
+                            ExtractFullPath = true,
+                            Overwrite = true
+                        });
+                    }
+                }
+            }
         }
 
         public AppResponse OpenArchive(string archivePath)
         {
             throw new System.NotImplementedException();
         }
+
     }
 }
