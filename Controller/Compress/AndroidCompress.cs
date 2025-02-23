@@ -1,4 +1,4 @@
-﻿namespace EZip.Controller.Compress
+﻿namespace EZip.Controller
 {
     using Model;
     internal class AndroidCompress : ICompress

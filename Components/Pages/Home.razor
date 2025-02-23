@@ -4,13 +4,26 @@
 @using EZip.Controller
 @using EZip.Model
 
+@*注入JS服务*@
 @inject IJSRuntime JSRuntime
-@inject IDirectory s_directory
+
+@*注入目录操作接口*@
+@inject IDirectory s_directory    
+
+@*注入文件操作接口*@
 @inject IFile s_file
+
+@*注入通知服务*@
 @inject NotificationService s_notification
+
+@*注入日志服务*@
 @inject EasyLogger s_logger
+
+@*注入本地化服务*@
 @inject LocalLanguageService s_languageService
-@inject WindowsCompress s_windowsCompress
+
+@*注入压缩解压相关服务*@
+@inject ICompress s_compress
 
 
 @*最顶层的div*@
@@ -122,98 +135,19 @@
 
 
 @code {
-    private List<HomeContent> directoryItems = new List<HomeContent>();
-    private Stack<string> pathStack = new Stack<string>();
+    // 主页面使用到的变量
+    private List<HomeContent> directoryItems = new List<HomeContent>();  // 当前目录下的所有项目，包括文件和目录
+    private Stack<string> pathStack = new Stack<string>();  // 用于记录路径的栈
     private List<HomeContent> selectedItems = new(); // 已选中的项目
     private string compressButtonText = "选择压缩项目"; // 按钮文本
     private bool isCompressMode = false; // 当前是否处于选择压缩项目模式
-    string currentPath = "";
+    string currentPath = "";  // 当前路径
 
+    // 模态框相关变量
     private bool showDialog = false;
     private string selectedFormat = "ZIP";  // 单选时用 string 类型来存储一个压缩格式
     private string compressFileName = "";
     private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
-
-    // 在弹窗中确定压缩文件
-    private void ConfirmCompress()
-    {
-        string[] contents = selectedItems
-        .Select(item => currentPath + item.Content)
-        .ToArray();
-
-        if (compressFileName is null) { 
-            compressFileName = "output.zip";
-        }
-
-        string outputFilePath = Path.Combine(currentPath, compressFileName);
-
-        HomeCompressMessage homeCompressMessage = new HomeCompressMessage
-            {
-                CompressPath = contents,
-                OutputFilePath = outputFilePath,
-                // compressType = CompressType.k_zip
-            };
-
-        if (selectedFormat == "ZIP")
-        {
-            homeCompressMessage.compressType= CompressType.k_zip;
-            homeCompressMessage.OutputFilePath = outputFilePath + ".zip";
-        }
-        else if (selectedFormat == "7Z")
-        {
-            homeCompressMessage.compressType = CompressType.k_sevenzip;
-            homeCompressMessage.OutputFilePath = outputFilePath + ".7z";
-        }
-        else if (selectedFormat == "TAR")
-        {
-            homeCompressMessage.compressType = CompressType.k_tar;
-            homeCompressMessage.OutputFilePath = outputFilePath + ".tar";
-        }
-
-        AppRequest request = new AppRequest
-            {
-                RequestType = RequestType.k_compressFile,
-                RequestData = homeCompressMessage
-            };
-
-        // 开始压缩操作
-        var response =  s_windowsCompress.CompressFile(request);
-
-        isCompressMode = false;
-        compressButtonText = "选择压缩项目";
-        selectedItems.Clear(); // 清空之前的选择
-
-        if (response.IsSuccessful)
-        {
-            s_notification.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = @s_languageService.GetString("Home-CompressSuccess"),
-                    Duration = 4000
-                });
-        }
-        else
-        {
-            s_notification.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = response.ErrorMessage,
-                    Duration = 4000
-                });
-        }
-
-        CloseModal();
-
-        compressFileName = "";
-
-        StateHasChanged();
-    }
-
-    // 关闭弹窗
-    private void CloseModal()
-    {
-        showDialog = false;
-    }
 
     // 框架自带的初始化函数
     protected override void OnInitialized()
@@ -222,67 +156,15 @@
         currentPath = s_directory.NowPath;
     }
 
-    /// <summary>
-    /// Load the items in the directory
-    /// </summary>
-    /// <param name="path">Total path</param>
+    // 传入一个路径，加载该路径下的所有文件和目录
     private void LoadDirectoryItems(string path)
     {
         isCompressMode = false;
         compressButtonText = "选择压缩项目";
         selectedItems.Clear(); // 清空之前的选择
 
-        AppRequest request = new AppRequest
-            {
-                RequestType = RequestType.k_showDirectory,
-                RequestData = path
-            };
-
-        if (Directory.Exists(path))
-        {
-            var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
-
-            var appResponseFiles = s_directory.ShowDirectoryFiles(request);
-
-            if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
-            {
-                var directories = appResponseDirectories.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
-
-                var files = appResponseFiles.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
-
-                // int count = files.Count();
-                // s_notification.Notify(new NotificationMessage
-                //     {
-                //         Severity = NotificationSeverity.Info,
-                //         Summary =$"file get success,there are {count} file",
-                //         Detail = "err message",
-                //         Duration = 4000
-                //     });
-
-                directoryItems = directories.Concat(files).ToList();
-                currentPath = path;
-                if (pathStack.Count == 0)
-                {
-                    pathStack.Push(path);
-                }
-                else if (pathStack.Peek() != path)
-                {
-                    pathStack.Push(path);
-                }
-            }
-            else
-            {
-                s_notification.Notify(new NotificationMessage
-                    {
-                        Severity = NotificationSeverity.Error,
-                        Summary = @s_languageService.GetString("Home-LoadDirectoryFailed"),
-                        // maybe should show the program error message
-                        Detail = "err message",
-                        Duration = 4000
-                    });
-            }
-        }
-        else
+        // 目录不存在时，显示警告信息然后返回
+        if (!Directory.Exists(path))
         {
             s_notification.Notify(new NotificationMessage
                 {
@@ -290,14 +172,52 @@
                     Summary = @s_languageService.GetString("Home-InvalidPath"),
                     Duration = 4000
                 });
+            return;
+        }
+
+        // 构造更新目录的请求
+        AppRequest request = new AppRequest
+            {
+                RequestType = RequestType.k_showDirectory,
+                RequestData = path
+            };
+
+        // 获取目录下的所有文件和目录
+        var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
+        var appResponseFiles = s_directory.ShowDirectoryFiles(request);
+
+        // 目录和文件加载成功时，将结果合并并显示
+        if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
+        {
+            var directories = appResponseDirectories.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
+            var files = appResponseFiles.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
+
+            directoryItems = directories.Concat(files).ToList();
+            currentPath = path;
+            if (pathStack.Count == 0)
+            {
+                pathStack.Push(path);
+            }
+            else if (pathStack.Peek() != path)
+            {
+                pathStack.Push(path);
+            }
+        }
+        else  // 如果加载失败，显示错误信息
+        {
+            s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = appResponseDirectories.ErrorMessage+appResponseFiles.ErrorMessage,
+                        Duration = 4000
+                    });
         }
 
         StateHasChanged();
     }
 
-    /// <summary>
-    /// in the case of pressing the Enter key, change the directory  path
-    /// </summary>
+    // ToDo: 处理键盘输入事件,这里只处理回车事件,用于处理回车改变目录
+    // 当前回车没有实际作用，只是用于测试
     private void HandleKeyDown(KeyboardEventArgs e)
     {
         if(e.Key == "Enter")
@@ -312,21 +232,16 @@
                     Summary = message,
                     Duration = 4000
                 });
-
         }
     }
 
-    /// <summary>
-    ///  this function is used to go back to the previous directory
-    /// </summary>
+    // 返回上一次的目录
     private void GoBack()
     {
         if (pathStack.Count > 1 )
         {
             pathStack.Pop();
-
             string previousPath = pathStack.Peek();
-
             LoadDirectoryItems(previousPath);
         }
         else
@@ -340,12 +255,10 @@
         }
     }
 
-    /// <summary>
-    /// 鼠标和触摸屏点击一行时会触发该事件
-    /// </summary>
-    /// <param name="item"></param>
+    // 点击某个项目时的处理函数
     private void OnItemClick(HomeContent item)
     {
+        // 如果当前处于选择模式，点击项目时，选择或取消选择
         if (isCompressMode)
         {
             if (selectedItems.Contains(item))
@@ -364,6 +277,17 @@
         // 解压压缩文件
         if (item.Type == ContentType.k_compress)
         {
+            if (string.IsNullOrEmpty(item.AbsolutePath))
+            {
+                s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "压缩文件路径无效",
+                        Duration = 4000
+                    });
+                return;
+            }
+
             HomeUnpackMessage homeUnpackMessage = new HomeUnpackMessage
                 {
                     ArchivePath = item.AbsolutePath,
@@ -374,26 +298,18 @@
                     RequestType = RequestType.k_k_unpackFile,
                     RequestData =  homeUnpackMessage
                 };
+            var response = s_compress.UnpackArchive(request);
 
-            var response = s_windowsCompress.UnpackArchive(request);
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = response.IsSuccessful ? NotificationSeverity.Success : NotificationSeverity.Error,
+                    Summary = response.IsSuccessful ? @s_languageService.GetString("Home-UnpackSuccess") : response.ErrorMessage,
+                    Duration = 4000
+                });
 
             if (response.IsSuccessful)
             {
-                s_notification.Notify(new NotificationMessage
-                    {
-                        Severity = NotificationSeverity.Success,
-                        Summary = @s_languageService.GetString("Home-UnpackSuccess"),
-                        Duration = 4000
-                    });
-            }
-            else
-            {
-                s_notification.Notify(new NotificationMessage
-                    {
-                        Severity = NotificationSeverity.Error,
-                        Summary = response.ErrorMessage,
-                        Duration = 4000
-                    });
+                LoadDirectoryItems(currentPath);
             }
         }
 
@@ -415,30 +331,29 @@
                         Severity = NotificationSeverity.Error,
                         Summary = response.ErrorMessage,
                         Duration = 4000
-                    });
+                 });
             }
         }
 
         // 打开一个目录
         if (item.Type == ContentType.k_directory)
         {
-            if (!string.IsNullOrEmpty(item.AbsolutePath) )
+            if (string.IsNullOrEmpty(item.AbsolutePath))
             {
-                // s_notification.Notify(new NotificationMessage
-                //     {
-                //         Severity = NotificationSeverity.Warning,
-                //         Summary = item.AbsolutePath,
-                //         Duration = 4000
-                //     });
-                LoadDirectoryItems(item.AbsolutePath);
+                s_notification.Notify(new NotificationMessage
+                    {
+                        Severity = NotificationSeverity.Error,
+                        Summary = "压缩文件路径无效",
+                        Duration = 4000
+                    });
+                return;
             }
+            LoadDirectoryItems(item.AbsolutePath);
         }
-        LoadDirectoryItems(currentPath);
+
     }
 
-    /// <summary>
-    /// 切换压缩模式
-    /// </summary>
+    // 压缩模式切换按钮的响应事件
     private void ToggleCompressMode()
     {
         if (!isCompressMode)
@@ -456,8 +371,86 @@
         }
     }
 
-    private void UnpackMode(HomeContent item)
+    // 在弹窗中确定压缩文件
+    private void ConfirmCompress()
     {
-        
+        // 获取所有选中的项目的路径
+        string[] contents = selectedItems
+        .Select(item => currentPath + item.Content)
+        .ToArray();
+
+        if (compressFileName is null)
+        {
+            compressFileName = "output.zip";
+        }
+
+        // 压缩文件的输出路径
+        string outputFilePath = Path.Combine(currentPath, compressFileName);
+
+        // 构造压缩消息,HomeCompressMessage 用于传递压缩相关信息
+        HomeCompressMessage homeCompressMessage = new HomeCompressMessage
+            {
+                CompressPath = contents,
+                OutputFilePath = outputFilePath,
+            };
+        if (selectedFormat == "ZIP")
+        {
+            homeCompressMessage.compressType = CompressType.k_zip;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".zip";
+        }
+        else if (selectedFormat == "7Z")
+        {
+            homeCompressMessage.compressType = CompressType.k_sevenzip;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".7z";
+        }
+        else if (selectedFormat == "TAR")
+        {
+            homeCompressMessage.compressType = CompressType.k_tar;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".tar";
+        }
+        AppRequest request = new AppRequest
+            {
+                RequestType = RequestType.k_compressFile,
+                RequestData = homeCompressMessage
+            };
+
+        // 开始压缩操作
+        var response = s_compress.CompressFile(request);
+        if (response.IsSuccessful)
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = @s_languageService.GetString("压缩成功"),
+                    Duration = 4000
+                });
+        }
+        else
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = response.ErrorMessage,
+                    Duration = 4000
+                });
+        }
+
+        // 关闭弹窗并将选择模式关闭
+        isCompressMode = false;
+        compressButtonText = "选择压缩项目";
+        selectedItems.Clear(); // 清空之前的选择
+        CloseModal();
+        compressFileName = "";
+
+        LoadDirectoryItems(currentPath);
+
+        StateHasChanged();
     }
+
+    // 关闭弹窗
+    private void CloseModal()
+    {
+        showDialog = false;
+    }
+
 }

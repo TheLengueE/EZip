@@ -21,13 +21,8 @@ namespace EZip
 
 #if DEBUG
     		builder.Services.AddBlazorWebViewDeveloperTools();
-            //builder.Logging.AddDebug();
+            builder.Logging.AddDebug();
 #endif
-
-            //builder.Services.AddRadzenComponents();
-            //builder.Services.AddRadzenCookieThemeService();
-            //builder.Services.AddRadzenQueryStringThemeService();
-
 
             // Singleton services
             builder.Services.AddSingleton<LocalLanguageService>();
@@ -36,13 +31,14 @@ namespace EZip
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
 
-            builder.Services.AddSingleton<WindowsCompress>();
 
             // when use visual studio, change different platform define different services
 #if WINDOWS
+            builder.Services.AddSingleton<ICompress,WindowsCompress>();
             builder.Services.AddSingleton<IDirectory, WindowsDirectoryOperations>();
             builder.Services.AddSingleton<IFile, WindowsFileOperations>();
 #elif ANDROID
+            builder.Services.AddSingleton<ICompress,AndroidCompress>();
             builder.Services.AddSingleton<IDirectory, AndroidDirectoryOperations>();
             builder.Services.AddSingleton<IFile, AndroidFileOperations>();
 #endif

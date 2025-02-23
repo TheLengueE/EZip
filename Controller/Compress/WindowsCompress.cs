@@ -10,17 +10,16 @@
         public AppResponse CompressFile(AppRequest request)
         {
             AppResponse response = new AppResponse();
+            // 检查请求是否为 null
+            if (request == null)
+            {
+                response.IsSuccessful = false;
+                response.ErrorMessage = "Request cannot be null.";
+                return response;
+            }
 
             try
             {
-                // 检查请求是否为 null
-                if (request == null)
-                {
-                    response.IsSuccessful = false;
-                    response.ErrorMessage = "Request cannot be null.";
-                    return response;
-                }
-
                 // 检查 RequestData 是否为 HomeCompressMessage 类型
                 if (request.RequestData is not HomeCompressMessage compressMessage)
                 {
@@ -46,18 +45,15 @@
 
                 if (compressMessage.compressType == CompressType.k_zip)
                 {
-                    // 调用实际的压缩逻辑
                     PerformZipCompress(compressMessage.CompressPath, compressMessage.OutputFilePath);
                 }
                 else if (compressMessage.compressType == CompressType.k_sevenzip)
                 {
-                    // 调用实际的压缩逻辑
                     PerformSevenZipCompress(compressMessage.CompressPath, compressMessage.OutputFilePath);
                 }
                 else if (compressMessage.compressType == CompressType.k_tar) 
                 {
                     PerformTarCompress(compressMessage.CompressPath, compressMessage.OutputFilePath);
-                    // 调用实际的压缩逻辑
                 }
                 else
                 {
@@ -67,8 +63,6 @@
 
                 // 设置成功响应
                 response.IsSuccessful = true;
-
-                response.ErrorMessage = "File compressed successfully.";
             }
             catch (Exception ex)
             {
@@ -120,11 +114,6 @@
             throw new System.NotImplementedException();
         }
 
-        public void PerformRarCompress( string[] directories, string outputFilePath)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public void PerformTarCompress(string[] directories, string outputFilePath) 
         {
             using (var tarStream = File.OpenWrite(outputFilePath))
@@ -152,11 +141,6 @@
                     }
                 }
             }
-        }
-
-        public void PerformTarGzCompress(string[] directories, string outputFilePath)
-        {
-            throw new System.NotImplementedException();
         }
 
         public AppResponse UnpackArchive(AppRequest request) 
