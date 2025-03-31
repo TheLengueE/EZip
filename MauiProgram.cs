@@ -24,12 +24,13 @@ namespace EZip
             builder.Logging.AddDebug();
 #endif
 
-            // Singleton services
+            // Singleton services  单例
             builder.Services.AddSingleton<LocalLanguageService>();
             //builder.Services.AddSingleton<EasyLogger>();
             builder.Services.AddSingleton(new EasyLogger("EZip.log", "MainLogger"));
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
+            builder.Services.AddSingleton<IPermissionHelper, PermissionHelper>();
 
 
             // when use visual studio, change different platform define different services
@@ -43,10 +44,10 @@ namespace EZip
             builder.Services.AddSingleton<IFile, AndroidFileOperations>();
 #endif
 
-            // Transient services
+            // Transient services  每次请求都会创建一个新的实例
 
-            // Scoped services
-            builder.Services.AddScoped<NotificationService>();
+            // Scoped services   每个作用域创建一个新的实例
+            //builder.Services.AddScoped<NotificationService>();
 
             return builder.Build();
         }

@@ -37,6 +37,25 @@
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
         <TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
         <SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+        <AndroidSigningKeyStore>TheLengueE.keystore</AndroidSigningKeyStore>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net8.0-android|AnyCPU'">
+      <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+      <AndroidKeyStore>True</AndroidKeyStore>
+      <AndroidSigningStorePass>e209000842</AndroidSigningStorePass>
+      <AndroidSigningKeyAlias>TheLengueE</AndroidSigningKeyAlias>
+      <AndroidSigningKeyPass>e209000842</AndroidSigningKeyPass>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net8.0-android|AnyCPU'">
+      <AndroidCreatePackagePerAbi>False</AndroidCreatePackagePerAbi>
+      <RunAOTCompilation>False</RunAOTCompilation>
+      <AndroidKeyStore>True</AndroidKeyStore>
+      <AndroidPackageFormat>apk</AndroidPackageFormat>
+      <AndroidSigningStorePass>e209000842</AndroidSigningStorePass>
+      <AndroidSigningKeyAlias>TheLengueE</AndroidSigningKeyAlias>
+      <AndroidSigningKeyPass>e209000842</AndroidSigningKeyPass>
     </PropertyGroup>
 
     <ItemGroup>

@@ -81,24 +81,30 @@
         /// <param name="outputFilePath">压缩文件输出路径</param>
         private void PerformZipCompress(string[] directories, string outputFilePath)
         {
-            using (var zipStream = File.OpenWrite(outputFilePath))
+            // 1. 确保目标目录存在
+            var parentDir = Path.GetDirectoryName(outputFilePath);
+            if (!string.IsNullOrEmpty(parentDir) && !Directory.Exists(parentDir))
+            {
+                Directory.CreateDirectory(parentDir);
+            }
+
+            // 2. 用 FileStream 打开支持中文路径
+            using (var zipStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
             using (var writer = WriterFactory.Open(zipStream, ArchiveType.Zip, CompressionType.Deflate))
             {
                 foreach (var dir in directories)
                 {
                     if (Directory.Exists(dir))
                     {
-
-                        // 遍历目录中的所有文件并压缩
                         foreach (var filePath in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
                         {
                             string relativePath = Path.GetRelativePath(dir, filePath);
                             writer.Write(relativePath, File.OpenRead(filePath));
                         }
                     }
-                    else if (File.Exists(dir)) 
+                    else if (File.Exists(dir))
                     {
-                        string relativePath = Path.GetFileName(dir); // 使用文件名作为相对路径
+                        string relativePath = Path.GetFileName(dir);
                         writer.Write(relativePath, File.OpenRead(dir));
                     }
                     else
@@ -108,6 +114,7 @@
                 }
             }
         }
+
 
         public void PerformSevenZipCompress(string[] directories, string outputFilePath)
         {

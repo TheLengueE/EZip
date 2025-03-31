@@ -25,6 +25,10 @@
 @*注入压缩解压相关服务*@
 @inject ICompress s_compress
 
+@*注入权限管理服务*@
+@inject IPermissionHelper s_permission
+
+
 
 @*最顶层的div*@
 <div>
@@ -150,8 +154,10 @@
     private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
 
     // 框架自带的初始化函数
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        await s_permission.RequestDocumentPermissionAsync();
+
         LoadDirectoryItems(s_directory.NowPath);
         currentPath = s_directory.NowPath;
     }
