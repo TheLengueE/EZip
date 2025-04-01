@@ -4,6 +4,9 @@
     using SharpCompress.Archives;
     using SharpCompress.Common;
     using SharpCompress.Writers;
+    using SharpCompress.Writers.Tar;
+    using SharpCompress.Writers.Zip;
+    using System.Text;
 
     internal class AndroidCompress : ICompress
     {
@@ -81,16 +84,21 @@
         /// <param name="outputFilePath">压缩文件输出路径</param>
         private void PerformZipCompress(string[] directories, string outputFilePath)
         {
-            using (var zipStream = File.OpenWrite(outputFilePath))
+            var options = new ZipWriterOptions(CompressionType.Deflate)
+            {
+                ArchiveEncoding = new ArchiveEncoding()
+                {
+                    Default = Encoding.UTF8 
+                }
+            };
 
-            using (var writer = WriterFactory.Open(zipStream, ArchiveType.Zip, CompressionType.Deflate))
+            using (var zipStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
+            using (var writer = WriterFactory.Open(zipStream, ArchiveType.Zip,options))
             {
                 foreach (var dir in directories)
                 {
                     if (Directory.Exists(dir))
                     {
-
-                        // 遍历目录中的所有文件并压缩
                         foreach (var filePath in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
                         {
                             string relativePath = Path.GetRelativePath(dir, filePath);
@@ -99,7 +107,7 @@
                     }
                     else if (File.Exists(dir))
                     {
-                        string relativePath = Path.GetFileName(dir); // 使用文件名作为相对路径
+                        string relativePath = Path.GetFileName(dir);
                         writer.Write(relativePath, File.OpenRead(dir));
                     }
                     else
@@ -108,7 +116,6 @@
                     }
                 }
             }
-
         }
 
         public void PerformSevenZipCompress(string[] directories, string outputFilePath)
@@ -118,14 +125,21 @@
 
         public void PerformTarCompress(string[] directories, string outputFilePath)
         {
+            var options = new TarWriterOptions(CompressionType.GZip,true)
+            {
+                ArchiveEncoding = new ArchiveEncoding
+                {
+                    Default = Encoding.UTF8
+                }
+            };
+
             using (var tarStream = File.OpenWrite(outputFilePath))
-            using (var writer = WriterFactory.Open(tarStream, ArchiveType.Tar, CompressionType.None))
+            using (var writer = WriterFactory.Open(tarStream, ArchiveType.Tar, options)) 
             {
                 foreach (var dir in directories)
                 {
                     if (Directory.Exists(dir))
                     {
-                        // 遍历目录中的所有文件并压缩
                         foreach (var filePath in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
                         {
                             string relativePath = Path.GetRelativePath(dir, filePath);
@@ -134,7 +148,7 @@
                     }
                     else if (File.Exists(dir))
                     {
-                        string relativePath = Path.GetFileName(dir); // 使用文件名作为相对路径
+                        string relativePath = Path.GetFileName(dir);
                         writer.Write(relativePath, File.OpenRead(dir));
                     }
                     else

@@ -356,7 +356,6 @@
             }
             LoadDirectoryItems(item.AbsolutePath);
         }
-
     }
 
     // 压缩模式切换按钮的响应事件
@@ -382,12 +381,12 @@
     {
         // 获取所有选中的项目的路径
         string[] contents = selectedItems
-        .Select(item => currentPath + item.Content)
-        .ToArray();
+             .Select(item => Path.Combine(currentPath, item.Content))
+             .ToArray();
 
-        if (compressFileName is null)
+        if (string.IsNullOrEmpty(compressFileName))
         {
-            compressFileName = "output.zip";
+            compressFileName = "output";
         }
 
         // 压缩文件的输出路径
