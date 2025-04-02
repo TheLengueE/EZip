@@ -62,54 +62,54 @@ namespace EZip.Controller
             AppResponse response = new AppResponse();
 
 #if ANDROID
-            if (request.RequestData is string path)
+    if (request.RequestData is string path)
+    {
+        try
+        {
+            var currentActivity = Microsoft.Maui.ApplicationModel.Platform.CurrentActivity;
+            var file = new Java.IO.File(path);
+
+            if (!file.Exists())
             {
-                try
-                {
-                    var context = Android.App.Application.Context;
-                    var file = new Java.IO.File(path);
-
-                    if (!file.Exists())
-                    {
-                        response.ErrorMessage = "File does not exist.";
-                        response.IsSuccessful = false;
-                        return response;
-                    }
-
-                    // 获取文件 URI
-                    Uri fileUri = FileProvider.GetUriForFile(
-                        context,
-                        $"{context.PackageName}.fileprovider",
-                        file);
-
-                    // 创建 Intent
-                    Intent intent = new Intent(Intent.ActionView);
-                    intent.SetDataAndType(fileUri, GetMimeType(path));
-                    intent.AddFlags(ActivityFlags.GrantReadUriPermission);
-
-                    // 启动 Intent
-                    context.StartActivity(Intent.CreateChooser(intent, "选择应用打开文件"));
-
-                    response.IsSuccessful = true;
-                }
-                catch (Exception ex)
-                {
-                    response.ErrorMessage = $"Error opening file: {ex.Message}";
-                    response.IsSuccessful = false;
-                }
-            }
-            else
-            {
-                response.ErrorMessage = "Invalid request data.";
+                response.ErrorMessage = "File does not exist.";
                 response.IsSuccessful = false;
+                return response;
             }
+
+            // 获取文件 URI
+            Uri fileUri = FileProvider.GetUriForFile(
+                currentActivity,
+                $"{currentActivity.PackageName}.fileprovider",
+                file);
+
+            // 创建 Intent
+            Intent intent = new Intent(Intent.ActionView);
+            intent.SetDataAndType(fileUri, GetMimeType(path));
+            intent.AddFlags(ActivityFlags.GrantReadUriPermission);
+
+            // 启动 Intent
+            currentActivity.StartActivity(Intent.CreateChooser(intent, "选择应用打开文件"));
+
+            response.IsSuccessful = true;
+        }
+        catch (Exception ex)
+        {
+            response.ErrorMessage = $"Error opening file: {ex.Message}";
+            response.IsSuccessful = false;
+        }
+    }
+    else
+    {
+        response.ErrorMessage = "Invalid request data.";
+        response.IsSuccessful = false;
+    }
 #else
             response.ErrorMessage = "OpenFile is not supported on this platform.";
             response.IsSuccessful = false;
 #endif
-
             return response;
         }
+
 
     }
 }

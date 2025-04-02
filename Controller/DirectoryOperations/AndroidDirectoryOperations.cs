@@ -30,7 +30,6 @@
             return response;
         }
 
-#if ANDROID
         /// <summary>
         /// 
         /// </summary>
@@ -42,47 +41,58 @@
 
             if (request.RequestData is string path)
             {
-                if (Directory.Exists(path)) 
+                try
                 {
-                    var files = Directory.GetFiles(path)
-                        .Select(filePath =>
-                        {
-                            var fileInfo = new FileInfo(filePath);
-                            return new HomeContent
+                    if (Directory.Exists(path))
+                    {
+                        var files = Directory.GetFiles(path)
+                            .Select(filePath =>
                             {
-                                Type = ContentType.k_file,
-                                Content = fileInfo.Name,
-                                CreateTime = fileInfo.CreationTime,
-                                UpdateTime = fileInfo.LastWriteTime,
-                                AbsolutePath = fileInfo.FullName,
-                                SizeInMB = fileInfo.Length / 1024 / 1024
-                            };
-                        })
-                        .ToList();
+                                var fileInfo = new FileInfo(filePath);
+                                var contentType = ContentType.k_file;
 
-                    response.ResponseData = files;
-                    response.IsSuccessful = true;
+                                // 检查文件扩展名
+                                var extension = fileInfo.Extension.ToLower();
+                                if (extension == ".zip" || extension == ".rar" || extension == ".7z" || extension == ".tar")
+                                {
+                                    contentType = ContentType.k_compress;
+                                }
+
+                                return new HomeContent
+                                {
+                                    Type = contentType,
+                                    Content = fileInfo.Name,
+                                    CreateTime = fileInfo.CreationTime,
+                                    UpdateTime = fileInfo.LastWriteTime,
+                                    AbsolutePath = fileInfo.FullName,
+                                    SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)
+                                };
+                            })
+                            .ToList();
+
+                        response.ResponseData = files;
+                        response.IsSuccessful = true;
+                    }
+                    else
+                    {
+                        response.ErrorMessage = "Directory does not exist";
+                        response.IsSuccessful = false;
+                        Console.WriteLine("Directory does not exist");
+                    }
                 }
-                else
+                catch (Exception e)
                 {
-                    response.ErrorMessage = "Directory does not exist";
+                    response.ErrorMessage = e.Message;
                     response.IsSuccessful = false;
                 }
-
             }
-
-             
+            else
+            {
+                response.ErrorMessage = "Invalid request data";
+                response.IsSuccessful = false;
+            }
             return response;
         }
-#else
-        public AppResponse ShowDirectoryFiles(AppRequest request)
-        {
-            AppResponse response = new AppResponse();
-
-
-            return response;
-        }
-#endif
 
         /// <summary>
         /// 

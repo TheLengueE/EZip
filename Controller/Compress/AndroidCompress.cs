@@ -183,10 +183,10 @@
                 Unpack(unpackMessage.ArchivePath, unpackMessage.OutputPath);
                 response.IsSuccessful = true;
             }
-            catch
+            catch(Exception ex)
             {
                 response.IsSuccessful = false;
-                response.ErrorMessage = "An error occurred while unpacking the file.";
+                response.ErrorMessage = ex.ToString();
             }
             return response;
         }

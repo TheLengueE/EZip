@@ -12,7 +12,6 @@
             _logger = logger;
         }
 
-
         public AppResponse GetDirectoryPath() 
         {
             // ToDo
@@ -81,7 +80,6 @@
                 response.ErrorMessage = "Invalid request data";
                 response.IsSuccessful = false;
             }
-
             return response;
         }
 
