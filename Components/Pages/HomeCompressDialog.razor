@@ -42,7 +42,7 @@
 
                 <div style="display: flex; justify-content: flex-end; gap: 10px;">
                     <RadzenButton Text="关闭" Click="@CloseModal" ButtonStyle="ButtonStyle.Secondary" />
-                    <RadzenButton Text="压缩" ButtonStyle="ButtonStyle.Primary" />
+                    <RadzenButton Text="压缩" Click="@ConfirmCompress" ButtonStyle="ButtonStyle.Primary" />
                 </div>
             </ChildContent>
         </RadzenCard>
@@ -55,7 +55,7 @@
     public string? currentPath { get; set; }
 
     [Parameter]
-    public string[]? contents { get; set; }
+    public List<HomeContent>? selectedItems { get; set; }
 
     [Parameter]
     public EventCallback OnClose { get; set; }
@@ -66,6 +66,7 @@
 
     private async Task CloseModal()
     {
+        compressFileName = "";
         if (OnClose.HasDelegate)
         {
             await OnClose.InvokeAsync();
@@ -75,6 +76,10 @@
     // 在弹窗中确定压缩文件
     private void ConfirmCompress()
     {
+           string[] contents = selectedItems
+        .Select(item => Path.Combine(currentPath, item.Content))
+        .ToArray();
+
         if (string.IsNullOrEmpty(compressFileName))
         {
             compressFileName = "output";

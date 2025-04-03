@@ -7,14 +7,14 @@
 
 @if (showDialog)
 {
-    <HomeDialog OnClose="CloseDialog" currentPath="@currentPath" contents="@contents" />
+    <HomeCompressDialog OnClose="CloseDialog" currentPath="@currentPath" contents="@contents" />
 }
 
 
 @code {
     public string? currentPath = "12312321";
 
-    public string[]? contents { get; set; }
+    public List<HomeContent> ? contents { get; set; }
 
     private bool showDialog = false;
 

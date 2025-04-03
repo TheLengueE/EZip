@@ -45,7 +45,7 @@
 
     @* 开始压缩的按钮 *@
     <div style="padding: 10px;">
-        <RadzenButton Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressMode" />
+        <RadzenButton Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressDialog" />
     </div>
 
     @* 表格包含标题和内容部分 *@
@@ -98,43 +98,12 @@
     </div>
 
     @*最顶层的div*@
-    @if (showDialog)
+    @if (showCompressDialog)
     {
-        <div style="position: absolute;
-                top: 0; left: 0;
-                width: 100%; height: 100%;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;">
-
-            <!-- 弹窗本体 -->
-            <div style="background: white;
-                    padding: 20px;
-                    border-radius: 6px;
-                    width: 100%;
-                    max-width: 640px;">
-                <!-- 限制弹窗最大宽度 -->
-
-                <RadzenCard Style="max-width:600px; margin:20px auto;">
-                    <ChildContent>
-                        <!-- 输入框用于输入压缩文件名字 -->
-                        <RadzenTextBox @bind-Value="@compressFileName" Placeholder="输入压缩文件名字" Style="width: 100%; margin-bottom: 20px;" />
-
-                        <!-- 单选项选择框用于选择压缩格式 -->
-                        <RadzenDropDown @bind-Value="@selectedFormat" Data="@compressionFormats" Placeholder="选择压缩格式" Style="width: 100%; margin-bottom: 20px;" />
-
-                        <!-- 按钮区域 -->
-                        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                            <RadzenButton Text="关闭" Click="CloseModal" ButtonStyle="ButtonStyle.Secondary" />
-                            <RadzenButton Text="压缩" Click="ConfirmCompress" ButtonStyle="ButtonStyle.Primary" />
-                        </div>
-                    </ChildContent>
-                </RadzenCard>
-
-            </div>
-        </div>
+        <HomeCompressDialog OnClose="CloseCompressDialog" currentPath="@currentPath" selectedItems="@selectedItems" />
     }
+
+    @*模态窗口*@
 </div>
 
 
@@ -147,12 +116,7 @@
     private bool isCompressMode = false; // 当前是否处于选择压缩项目模式
     string currentPath = "";  // 当前路径
 
-    // 模态框相关变量
-    private bool showDialog = false;
-    private string selectedFormat = "ZIP";  // 单选时用 string 类型来存储一个压缩格式
-    private string compressFileName = "";
-    private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
-
+    bool showCompressDialog = false; // 是否显示模态窗口
 
     // 框架自带的初始化函数
     protected override async Task OnInitializedAsync()
@@ -160,6 +124,7 @@
         await s_permission.RequestDocumentPermissionAsync();
 
         LoadDirectoryItems(s_directory.NowPath);
+
         currentPath = s_directory.NowPath;
     }
 
@@ -219,7 +184,6 @@
                         Duration = 4000
                     });
         }
-
         StateHasChanged();
     }
 
@@ -359,8 +323,11 @@
         }
     }
 
-    // 压缩模式切换按钮的响应事件
-    private void ToggleCompressMode()
+    //// <summary>
+    /// 压缩窗口按钮的点击事件，会在点击时进入选择模式，
+    /// 在选择模式下进行点击会展示压缩模态窗口进一步完成压缩操作
+    /// </summary>
+    private void ToggleCompressDialog()
     {
         if (!isCompressMode)
         {
@@ -371,92 +338,27 @@
         }
         else
         {
-            showDialog = true;
+            showCompressDialog = true;
             StateHasChanged();
-            return;
         }
     }
 
-    // 在弹窗中确定压缩文件
-    private void ConfirmCompress()
+    /// <summary>
+    /// 压缩模态窗口关闭事件，
+    /// 已经绑定到模态窗口的关闭按钮上了
+    /// </summary>
+    void CloseCompressDialog()
     {
-        // 获取所有选中的项目的路径
-        string[] contents = selectedItems
-             .Select(item => Path.Combine(currentPath, item.Content))
-             .ToArray();
-
-        if (string.IsNullOrEmpty(compressFileName))
-        {
-            compressFileName = "output";
-        }
-
-        // 压缩文件的输出路径
-        string outputFilePath = Path.Combine(currentPath, compressFileName);
-
-        // 构造压缩消息,HomeCompressMessage 用于传递压缩相关信息
-        HomeCompressMessage homeCompressMessage = new HomeCompressMessage
-            {
-                CompressPath = contents,
-                OutputFilePath = outputFilePath,
-            };
-        if (selectedFormat == "ZIP")
-        {
-            homeCompressMessage.compressType = CompressType.k_zip;
-            homeCompressMessage.OutputFilePath = outputFilePath + ".zip";
-        }
-        else if (selectedFormat == "7Z")
-        {
-            homeCompressMessage.compressType = CompressType.k_sevenzip;
-            homeCompressMessage.OutputFilePath = outputFilePath + ".7z";
-        }
-        else if (selectedFormat == "TAR")
-        {
-            homeCompressMessage.compressType = CompressType.k_tar;
-            homeCompressMessage.OutputFilePath = outputFilePath + ".tar";
-        }
-        AppRequest request = new AppRequest
-            {
-                RequestType = RequestType.k_compressFile,
-                RequestData = homeCompressMessage
-            };
-
-        // 开始压缩操作
-        var response = s_compress.CompressFile(request);
-        if (response.IsSuccessful)
-        {
-            s_notification.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Success,
-                    Summary = @s_languageService.GetString("压缩成功"),
-                    Duration = 4000
-                });
-        }
-        else
-        {
-            s_notification.Notify(new NotificationMessage
-                {
-                    Severity = NotificationSeverity.Error,
-                    Summary = response.ErrorMessage,
-                    Duration = 4000
-                });
-        }
+        showCompressDialog = false;
 
         // 关闭弹窗并将选择模式关闭
         isCompressMode = false;
         compressButtonText = "选择压缩项目";
         selectedItems.Clear(); // 清空之前的选择
-        CloseModal();
-        compressFileName = "";
 
         LoadDirectoryItems(currentPath);
-
         StateHasChanged();
     }
 
-    // 关闭弹窗
-    private void CloseModal()
-    {
-        showDialog = false;
-    }
 
 }
