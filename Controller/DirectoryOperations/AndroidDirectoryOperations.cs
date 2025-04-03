@@ -23,15 +23,15 @@
             _logger = logger;
         }
 
+        // ToDo
         public AppResponse GetDirectoryPath()
         {
-            // ToDo
             AppResponse response = new AppResponse();
             return response;
         }
 
         /// <summary>
-        /// 
+        ///  展示当前目录下的文件
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -65,7 +65,7 @@
                                     CreateTime = fileInfo.CreationTime,
                                     UpdateTime = fileInfo.LastWriteTime,
                                     AbsolutePath = fileInfo.FullName,
-                                    SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)
+                                    SizeInMB = Math.Round(fileInfo.Length / 1024.0 / 1024.0, 2)   // 两位小数的MB大小
                                 };
                             })
                             .ToList();
@@ -95,7 +95,7 @@
         }
 
         /// <summary>
-        /// 
+        /// 展示当前目录下的目录
         /// </summary>
         /// <param name="request"></param>
         /// <returns></returns>
@@ -103,82 +103,89 @@
         {
             AppResponse response = new AppResponse();
 
-            if (request.RequestData is string path)
+            if (request.RequestData is not string data || string.IsNullOrEmpty(data))
             {
-                try
-                {
-                    if ((Directory.Exists(path)))
-                    {
-                        var directories = Directory.GetDirectories(path)
-                            .Select(directoryPath =>
-                            {
-                                var directoryInfo = new DirectoryInfo(directoryPath);
-                                return new HomeContent
-                                {
-                                    Type = ContentType.k_directory,
-                                    Content = directoryInfo.Name,
-                                    CreateTime = directoryInfo.CreationTime,
-                                    UpdateTime = directoryInfo.LastWriteTime,
-                                    AbsolutePath = directoryInfo.FullName,
-                                    SizeInMB = null
-                                };
-                            })
-                            .ToList();
-
-                        response.ResponseData = directories;
-                        response.IsSuccessful = true;
-                    }
-                    else
-                    {
-                        response.ErrorMessage = "Directory does not exist";
-                        response.IsSuccessful = false;
-                    }
-                }
-                catch (Exception e)
-                {
-                    response.ErrorMessage = e.Message;
-                    response.IsSuccessful = false;
-                }
-            }
-            else
-            {
-                response.ErrorMessage = "Invalid request data";
+                response.ErrorMessage = "Invalid request data.";
                 response.IsSuccessful = false;
             }
+
+            string? path = request.RequestData as string;
+
+            try
+            {
+                if (Directory.Exists(path))
+                {
+                    var directories = Directory.GetDirectories(path)
+                        .Where(directoryPath =>
+                        {
+                            var attributes = File.GetAttributes(directoryPath);
+                            return (attributes & FileAttributes.Hidden) == 0;    // 排除隐藏文件夹
+                        })
+                        .Select(directoryPath =>
+                        {
+                            var directoryInfo = new DirectoryInfo(directoryPath);
+                            return new HomeContent
+                            {
+                                Type = ContentType.k_directory,
+                                Content = directoryInfo.Name,
+                                CreateTime = directoryInfo.CreationTime,
+                                UpdateTime = directoryInfo.LastWriteTime,
+                                AbsolutePath = directoryInfo.FullName,
+                                SizeInMB = null
+                            };
+                        })
+                        .ToList();
+
+                    response.ResponseData = directories;
+                    response.IsSuccessful = true;
+                }
+                else
+                {
+                    response.ErrorMessage = "Directory does not exist";
+                    response.IsSuccessful = false;
+                    _logger.LogError("Directory does not exist", new DirectoryNotFoundException(path));
+                }
+            }
+            catch (Exception e)
+            {
+                response.ErrorMessage = e.Message;
+                response.IsSuccessful = false;
+            }
+
             return response;
         }
 
+            // ToDo
         public AppResponse CreateDirectory(AppRequest request)
         {
-            // ToDo
             AppResponse response = new AppResponse();
             return response;
         }
 
+            // ToDo
         public AppResponse DeleteDirectory(AppRequest request)
         {
-            // ToDo
             AppResponse response = new AppResponse();
             return response;
         }
 
+            // ToDo
         public AppResponse MoveDirectory(AppRequest request)
         {
-            // ToDo
             AppResponse response = new AppResponse();
             return response;
         }
 
+            // ToDo
         public AppResponse CopyDirectory(AppRequest request)
         {
-            // ToDo
             AppResponse response = new AppResponse();
             return response;
         }
 
+            // ToDo
         public AppResponse RenameDirectory(AppRequest request)
         {
-            // ToDo
             AppResponse response = new AppResponse();
             return response;
         }

@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-#if ANDROID
+﻿#if ANDROID
 using Android.Content;
 using Android.Provider;
 #endif
@@ -24,6 +22,7 @@ namespace EZip.Controller
 
             return Android.OS.Environment.IsExternalStorageManager;
 #else
+            await Task.Delay(3000);
             return true;
 #endif
         }

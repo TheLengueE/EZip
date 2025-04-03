@@ -69,8 +69,6 @@
                     writer.WriteLine(logMessage);
                 }
             }
-
-            Console.WriteLine(logMessage);
         }
     }
 
