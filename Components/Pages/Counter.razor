@@ -1,17 +1,46 @@
 ﻿@page "/counter"
-@inject NavigationManager NavigationManager
+@using EZip.Model
+@using Radzen.Blazor
 
-<h1>Counter</h1>
 
-<p role="status">Current count: @currentCount</p>
+<button @onclick="ToggleDialog">打开模态窗口</button>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@if (showDialog)
+{
+    <HomeDialog OnClose="CloseDialog" currentPath="@currentPath" contents="@contents" />
+}
+
 
 @code {
-    private int currentCount = 0;
+    public string? currentPath = "12312321";
 
-    private void IncrementCount()
+    public string[]? contents { get; set; }
+
+    private bool showDialog = false;
+
+    void ToggleDialog()
     {
-        currentCount++;
+     //    string[] contents = selectedItems
+     // .Select(item => Path.Combine(currentPath, item.Content))
+     // .ToArray();
+        showDialog = true;
+    }
+
+    void CloseDialog() 
+    { 
+        showDialog = false;
+
+        // 关闭弹窗并将选择模式关闭
+        // isCompressMode = false;
+        // compressButtonText = "选择压缩项目";
+        // selectedItems.Clear(); // 清空之前的选择
+        // CloseModal();
+        // compressFileName = "";
+
+        // LoadDirectoryItems(currentPath);
+
+        StateHasChanged();
     }
 }
+
+

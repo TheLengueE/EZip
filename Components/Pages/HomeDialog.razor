@@ -1,12 +1,140 @@
 ﻿@using EZip.Model
+@using EZip.Controller
 @using Radzen.Blazor
+@using Microsoft.AspNetCore.Components
 
-<RadzenCard Style="max-width:600px; margin:20px auto;">
-    <h3>选择商品</h3>
+@*注入JS服务*@
+@inject IJSRuntime JSRuntime
 
-  </RadzenCard>
+@*注入目录操作接口*@
+@inject IDirectory s_directory
+
+@*注入文件操作接口*@
+@inject IFile s_file
+
+@*注入通知服务*@
+@inject NotificationService s_notification
+
+@*注入日志服务*@
+@inject EasyLogger s_logger
+
+@*注入压缩解压相关服务*@
+@inject ICompress s_compress
+
+<div style="position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;">
+
+    <div style="background: white;
+                padding: 20px;
+                border-radius: 6px;
+                width: 100%;
+                max-width: 640px;">
+
+        <RadzenCard Style="max-width:600px; margin:20px auto;">
+            <ChildContent>
+                <RadzenTextBox @bind-Value="@compressFileName" Placeholder="输入压缩文件名字" Style="width: 100%; margin-bottom: 20px;" />
+                <RadzenDropDown @bind-Value="@selectedFormat" Data="@compressionFormats" Placeholder="选择压缩格式" Style="width: 100%; margin-bottom: 20px;" />
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <RadzenButton Text="关闭" Click="@CloseModal" ButtonStyle="ButtonStyle.Secondary" />
+                    <RadzenButton Text="压缩" ButtonStyle="ButtonStyle.Primary" />
+                </div>
+            </ChildContent>
+        </RadzenCard>
+
+    </div>
+</div>
 
 @code {
- }
+    [Parameter]
+    public string? currentPath { get; set; }
+
+    [Parameter]
+    public string[]? contents { get; set; }
+
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    private string ? selectedFormat = "ZIP";
+    private string ? compressFileName = "";
+    private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
+
+    private async Task CloseModal()
+    {
+        if (OnClose.HasDelegate)
+        {
+            await OnClose.InvokeAsync();
+        }
+    }
+
+    // 在弹窗中确定压缩文件
+    private void ConfirmCompress()
+    {
+        if (string.IsNullOrEmpty(compressFileName))
+        {
+            compressFileName = "output";
+        }
+
+        // 压缩文件的输出路径
+        string outputFilePath = Path.Combine(currentPath, compressFileName);
+
+        // 构造压缩消息,HomeCompressMessage 用于传递压缩相关信息
+        HomeCompressMessage homeCompressMessage = new HomeCompressMessage
+            {
+                CompressPath = contents,
+                OutputFilePath = outputFilePath,
+            };
+        if (selectedFormat == "ZIP")
+        {
+            homeCompressMessage.compressType = CompressType.k_zip;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".zip";
+        }
+        else if (selectedFormat == "7Z")
+        {
+            homeCompressMessage.compressType = CompressType.k_sevenzip;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".7z";
+        }
+        else if (selectedFormat == "TAR")
+        {
+            homeCompressMessage.compressType = CompressType.k_tar;
+            homeCompressMessage.OutputFilePath = outputFilePath + ".tar";
+        }
+        AppRequest request = new AppRequest
+            {
+                RequestType = RequestType.k_compressFile,
+                RequestData = homeCompressMessage
+            };
+
+        // 开始压缩操作
+        var response = s_compress.CompressFile(request);
+        if (response.IsSuccessful)
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Success,
+                    Summary = "压缩成功",
+                    Duration = 4000
+                });
+        }
+        else
+        {
+            s_notification.Notify(new NotificationMessage
+                {
+                    Severity = NotificationSeverity.Error,
+                    Summary = response.ErrorMessage,
+                    Duration = 4000
+                });
+        }
+
+     }
+
+}
+
+
 
 

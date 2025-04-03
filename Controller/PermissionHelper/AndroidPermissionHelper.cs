@@ -22,7 +22,7 @@ namespace EZip.Controller
 
             return Android.OS.Environment.IsExternalStorageManager;
 #else
-            await Task.Delay(3000);
+            await Task.Delay(1);
             return true;
 #endif
         }

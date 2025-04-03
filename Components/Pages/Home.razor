@@ -157,7 +157,7 @@
     // 框架自带的初始化函数
     protected override async Task OnInitializedAsync()
     {
-            await s_permission.RequestDocumentPermissionAsync();
+        await s_permission.RequestDocumentPermissionAsync();
 
         LoadDirectoryItems(s_directory.NowPath);
         currentPath = s_directory.NowPath;
