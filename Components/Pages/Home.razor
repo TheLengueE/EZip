@@ -53,10 +53,10 @@
         @if (directoryItems != null && directoryItems.Any())
         {
             <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
-                <div style="flex: 1;">名称</div>
                 @* <div style="flex: 1; text-align: center;">创建时间</div> *@
-                <div style="flex: 1; text-align: center;">更新时间</div>
-                <div style="flex: 1; text-align: right;">大小</div>
+                <div style="flex: 1;">@s_languageService.GetString("Home-ItemName")</div>
+                <div style="flex: 1; text-align: center;">@s_languageService.GetString("Home-UpdateTime")</div>
+                <div style="flex: 1; text-align: right;">@s_languageService.GetString("Home-ItemSize")</div>
             </div>
 
             <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
@@ -98,11 +98,12 @@
     </div>
 
     @*最顶层的div*@
+
+    @*模态窗口*@
     @if (showCompressDialog)
     {
         <HomeCompressDialog OnClose="CloseCompressDialog" currentPath="@currentPath" selectedItems="@selectedItems" />
     }
-
     @*模态窗口*@
 </div>
 
@@ -112,7 +113,7 @@
     private List<HomeContent> directoryItems = new List<HomeContent>();  // 当前目录下的所有项目，包括文件和目录
     private Stack<string> pathStack = new Stack<string>();  // 用于记录路径的栈
     private List<HomeContent> selectedItems = new(); // 已选中的项目
-    private string compressButtonText = "选择压缩项目"; // 按钮文本
+    private string compressButtonText = "";// 按钮文本
     private bool isCompressMode = false; // 当前是否处于选择压缩项目模式
     string currentPath = "";  // 当前路径
 
@@ -123,6 +124,8 @@
     {
         await s_permission.RequestDocumentPermissionAsync();
 
+        compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
+
         LoadDirectoryItems(s_directory.NowPath);
 
         currentPath = s_directory.NowPath;
@@ -132,7 +135,7 @@
     private void LoadDirectoryItems(string path)
     {
         isCompressMode = false;
-        compressButtonText = "选择压缩项目";
+        compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
         selectedItems.Clear(); // 清空之前的选择
 
         // 目录不存在时，显示警告信息然后返回
@@ -141,7 +144,7 @@
             s_notification.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = @s_languageService.GetString("Home-InvalidPath"),
+                    Summary = @s_languageService.GetString("Home-InvalidPath")+path,
                     Duration = 4000
                 });
             return;
@@ -333,7 +336,7 @@
         {
             // 进入选择模式
             isCompressMode = true;
-            compressButtonText = "开始压缩";
+            compressButtonText = s_languageService.GetString("Home-BeginCompress");
             selectedItems.Clear(); // 清空之前的选择
         }
         else
@@ -353,7 +356,7 @@
 
         // 关闭弹窗并将选择模式关闭
         isCompressMode = false;
-        compressButtonText = "选择压缩项目";
+        compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
         selectedItems.Clear(); // 清空之前的选择
 
         LoadDirectoryItems(currentPath);

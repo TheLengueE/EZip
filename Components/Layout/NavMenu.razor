@@ -37,3 +37,17 @@
     </nav>
 
 </div>
+
+@code {
+    // 语言切换的时候这个组件也应该被重新刷新
+    protected override void OnInitialized()
+    {
+        s_languageService.OnLanguageChanged += StateHasChanged;
+    }
+
+    public void Dispose()
+    {
+        s_languageService.OnLanguageChanged -= StateHasChanged;
+    }
+}
+

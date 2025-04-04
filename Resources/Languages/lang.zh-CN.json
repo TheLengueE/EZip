@@ -1,0 +1,22 @@
+{
+  "Home-Confirm": "提交",
+  "Home-InvalidPath": "该路径不存在:",
+  "Home-GoBackFaild": "返回上级目录失败，已经是根目录了",
+
+  "Home-UpdateTime": "更新时间",
+  "Home-ItemName": "名称",
+  "Home-ItemSize": "大小",
+  "Home-ChoseCompressPath": "选择压缩目录",
+  "Home-BeginCompress": "开始压缩",
+
+  "HomeD-CompressFileName": "输入压缩文件名字",
+  "HomeD-CompressFileType": "选择压缩格式",
+  "HomeD-CompressSuccess": "压缩成功",
+
+  "HomeD-Compress": "压缩",
+  "HomeD-Close": "取消",
+
+  "Menu1": "首页",
+  "Menu2": "收藏",
+  "Menu3": "帮助"
+}

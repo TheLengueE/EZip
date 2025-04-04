@@ -1,0 +1,23 @@
+{
+  "Home-Confirm": "Confirm",
+  "Home-InvalidPath": "The path exists:",
+  "Home-GoBackFaild": "Failed to return to the parent directory, which is already the root directory",
+
+  "Home-UpdataTime": "UpdateTime",
+  "Home-ItemName": "Name",
+  "Home-ItemSize": "Size",
+  "Home-ChoseCompressPath": "ChoseCompressPath",
+  "Home-BeginCompress": "StartCompression",
+
+  "HomeD-CompressFileName": "Input zip file name",
+  "HomeD-CompressSuccess": "Compress Success",
+  "HomeD-CompressFileType": "Select  compression format",
+
+  "HomeD-Compress": "Compression",
+  "HomeD-Close": "Cancel",
+
+  "Menu1": "Home",
+  "Menu2": "Favorites",
+  "Menu3": "Help"
+}
+

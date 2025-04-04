@@ -1,62 +1,71 @@
 ﻿namespace EZip.Controller
 {
     using System.Globalization;
-    using System.Resources;
+    using System.Text.Json;
     using Microsoft.Maui.Storage;
 
     /// <summary>
-    /// This class is used to set the local language
-    /// and get localized strings from the resource file.
+    /// JSON-based language service for dynamic localization.
     /// </summary>
     public class LocalLanguageService
     {
-        private readonly ResourceManager _resourceManager;
-        private CultureInfo _currentCulture;
-        private string _defaultLanguage = "zh-CN";
+        private Dictionary<string, string> _translations = new();
+        private string _currentLanguage = "zh-CN";  // en
+        public event Action? OnLanguageChanged;
 
-        /// <summary>
-        /// Initializes the LocalLanguageService with the user's preferred language.
-        /// </summary>
         public LocalLanguageService()
         {
-            _resourceManager = new ResourceManager("EZip.Resources.Languages.Strings", typeof(LocalLanguageService).Assembly);
-            var savedLanguage = Preferences.Get("AppLanguage", _defaultLanguage);
-
-            // if SetLanguage fails, default to Chinese
-            _currentCulture = new CultureInfo("zh-CN");
-
-            SetLanguage(savedLanguage); 
+            LoadLanguageFile(_currentLanguage);
         }
 
         /// <summary>
         /// Gets the localized string for the given key.
         /// </summary>
-        /// <param name="key">The key to look up in the resource file.</param>
+        /// <param name="key">The key to look up in the language dictionary.</param>
         /// <returns>The localized string, or the key itself if not found.</returns>
         public string GetString(string key)
         {
-            string? value = _resourceManager.GetString(key, _currentCulture);
+            if (_translations.TryGetValue(key, out var value))
+                return value;
 
-            return value ?? key; 
+            return key; // fallback if key not found
         }
 
+        public void SetLanguage(string languageCode)
+        {
+            if (_currentLanguage != languageCode)
+            {
+                LoadLanguageFile(languageCode);
+                _currentLanguage = languageCode;
+                OnLanguageChanged?.Invoke(); // 🔔 通知组件更新
+            }
+        }
+
+
         /// <summary>
-        /// Sets the application language and saves it as the user's preference.
+        /// Loads the JSON translation file based on the culture code.
         /// </summary>
-        /// <param name="cultureCode">The culture code (e.g., "en" for English, "zh-CN" for Chinese).</param>
-        public void SetLanguage(string cultureCode)
+        /// <param name="cultureCode">Language code</param>
+        private void LoadLanguageFile(string cultureCode)
         {
             try
             {
-                _currentCulture = new CultureInfo(cultureCode);
-                CultureInfo.CurrentUICulture = _currentCulture;
-                CultureInfo.CurrentCulture = _currentCulture;
-                Preferences.Set("AppLanguage", cultureCode);
+                _currentLanguage = cultureCode;
+                CultureInfo.CurrentUICulture = new CultureInfo(cultureCode);
+                CultureInfo.CurrentCulture = new CultureInfo(cultureCode);
+
+                var fileName = $"Resources/Languages/lang.{cultureCode}.json";
+                using var stream = FileSystem.OpenAppPackageFileAsync(fileName).Result;
+                using var reader = new StreamReader(stream);
+                var json = reader.ReadToEnd();
+
+                _translations = JsonSerializer.Deserialize<Dictionary<string, string>>(json) ?? new();
             }
-            catch (CultureNotFoundException)
+            catch
             {
-                // write to log
+                _translations = new(); // fallback to empty if not found
             }
         }
     }
 }
+

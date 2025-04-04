@@ -1,9 +1,14 @@
 ﻿@page "/counter"
 @using EZip.Model
+@using EZip.Controller
 @using Radzen.Blazor
+
+@*注入本地化服务*@
+@inject LocalLanguageService s_languageService
 
 
 <button @onclick="ToggleDialog">打开模态窗口</button>
+<button @onclick="change">语言转换测试</button>
 
 @if (showDialog)
 {
@@ -20,9 +25,9 @@
 
     void ToggleDialog()
     {
-     //    string[] contents = selectedItems
-     // .Select(item => Path.Combine(currentPath, item.Content))
-     // .ToArray();
+        //    string[] contents = selectedItems
+        // .Select(item => Path.Combine(currentPath, item.Content))
+        // .ToArray();
         showDialog = true;
     }
 
@@ -39,6 +44,12 @@
 
         // LoadDirectoryItems(currentPath);
 
+        StateHasChanged();
+    }
+
+    void change() 
+    {
+        s_languageService.SetLanguage("en");
         StateHasChanged();
     }
 }
