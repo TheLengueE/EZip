@@ -31,47 +31,69 @@
 
 /* @#@#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
 
-/* 列表顶部标题行 */
-.directory-list-header {
+.file-entry {
     display: flex;
-    justify-content: space-between;
-    padding: 10px;
-    background-color: #f7f7f7;
-    font-weight: bold;
-    border-bottom: 2px solid #e0e0e0;
-}
-
-/* 文件列表容器 */
-.directory-list-container {
-    flex: 1;
-    overflow-y: auto;
-    max-height: calc(100vh - 150px);
-}
-
-/* 单个文件项样式 */
-.directory-item {
-    display: flex;
-    justify-content: space-between;
-    padding: 1px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+    align-items: center;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-    .directory-item.selected {
-        background-color: #dff0d8;
+    .file-entry:hover {
+        background-color: #f9f9f9;
     }
 
-.center {
-    text-align: center;
+    .file-entry.selected {
+        background-color: #e0f7fa;
+    }
+
+/* 图标样式 */
+.file-icon {
+    font-size: 32px;
+    margin-right: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+}
+
+/* 文本容器 */
+.file-text {
+    display: flex;
+    flex-direction: column;
     flex: 1;
 }
 
-.right {
-    text-align: right;
+/* 名称 */
+.file-name {
+    font-weight: 500;
+    font-size: 1rem;
+    color: #333;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 时间 + 大小 行 */
+.file-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: #888;
+    margin-top: 4px;
+}
+
+.file-time {
     flex: 1;
 }
 
-/* 暂无数据提示 */
-.empty-hint {
-    text-align: center;
-    padding: 20px;
+.file-size {
+    flex-shrink: 0;
+    margin-left: 12px;
+}
+
+.directory-list-container {
+    max-height: calc(100vh - 250px); /* 调整这个值以留出顶部/底部空间 */
+    overflow-y: auto;
+    padding: 0 1rem;
 }

@@ -37,7 +37,7 @@
 
     <!-- 顶部路径栏 -->
     <div class="path-bar">
-        <input class="custom-input" @bind="currentPath" @onkeydown="HandleKeyDown" placeholder="输入路径" />
+        <input class="custom-input"@bind-value="currentPath"@bind-value:event="oninput"@onkeydown="HandleKeyDown"placeholder="输入路径" />
         <RadzenButton Text="◀" ButtonStyle="ButtonStyle.Light" Click="GoBack" />
     </div>
 
@@ -55,36 +55,34 @@
     <div class="directory-list-container">
         @if (directoryItems != null && directoryItems.Any())
         {
-                <div class="directory-list-header">
-                    <div>@s_languageService.GetString("Home-ItemName")</div>
-                    <div class="center">@s_languageService.GetString("Home-UpdateTime")</div>
-                    <div class="right">@s_languageService.GetString("Home-ItemSize")</div>
-                </div>
-
                 <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
-                    <Template Context="item">
-                        <div class="directory-item @(selectedItems.Contains(item) ? "selected" : "")"
-                             @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
+                <Template Context="item">
+                    <div class="file-entry @(selectedItems.Contains(item) ? "selected" : "")"
+                         @onclick="() => OnItemClick(item)"
+                         ontouchstart="OnTouchStart(event, item)">
 
-                        @if (item.Type == ContentType.k_directory)
-                        {
-                            @("\ud83d\udcc1")
-                        }
-                        else if (item.Type == ContentType.k_file)
-                        {
-                            @("\ud83d\udcc4")
-                        }
+                        <!-- 图标 -->
+                        <div class="file-icon">
+                            @(item.Type == ContentType.k_directory ? "\ud83d\udcc1" : "\ud83d\udcc4")
+                        </div>
 
-                            <div>@item.Content</div>
-                            <div class="center">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
-                            <div class="right">
-                            @if (item.SizeInMB.HasValue)
-                            {
-                                @($"{item.SizeInMB.Value:F2} MB")
-                            }
+                        <!-- 文本部分 -->
+                        <div class="file-text">
+                            <!-- 文件/文件夹名称 -->
+                            <div class="file-name">@item.Content</div>
+
+                            <!-- 时间 + 可选大小 -->
+                            <div class="file-meta">
+                                <span class="file-time">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</span>
+                                @if (item.Type == ContentType.k_file && item.SizeInMB.HasValue)
+                                {
+                                    <span class="file-size">@($"{item.SizeInMB.Value:F2} MB")</span>
+                                }
                             </div>
                         </div>
-                    </Template>
+
+                    </div>
+                </Template>
                 </RadzenDataList>
         }
         else
@@ -200,7 +198,7 @@
     {
         if(e.Key == "Enter")
         {
-            string message = $"enter event had be call notify pathCount is {pathStack.Count}";
+            string message = $"enter event had be call notify pathCount is {pathStack.Count},path is {currentPath}";
 
             LoadDirectoryItems(currentPath);
 
