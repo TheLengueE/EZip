@@ -77,7 +77,19 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Content Remove="Resources\Languages\lang.en.json" />
+      <Content Remove="Resources\Languages\lang.zh-CN.json" />
+      <Content Remove="wwwroot\css\Home.css" />
+    </ItemGroup>
+
+    <ItemGroup>
       <None Remove="Platforms\Android\Resources\xml\file_paths.xml" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <MauiAsset Include="Resources\Languages\lang.en.json" />
+      <MauiAsset Include="Resources\Languages\lang.zh-CN.json" />
+      <MauiAsset Include="wwwroot\css\Home.css" />
     </ItemGroup>
 
     <ItemGroup>

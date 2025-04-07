@@ -28,43 +28,44 @@
 @*注入权限管理服务*@
 @inject IPermissionHelper s_permission
 
+<HeadContent>
+    <link href="css/Home.css" rel="stylesheet" />
+</HeadContent>
 
+<!-- 最顶层容器 -->
+<div class="home-container">
 
-@*最顶层的div*@
-<div>
-    @*最上方的路径显示输入栏和路径回退按钮*@
-    <div style="display: flex; align-items: center; justify-content: space-between; gap: 5px; padding: 10px;">
-        <RadzenButton Text="◀ " ButtonStyle="ButtonStyle.Light" Click="GoBack" />
-        <RadzenTextBox @bind-Value="currentPath" Placeholder="输入目标路径" Style="flex-grow: 1;" @onkeydown="HandleKeyDown" />
-        <RadzenButton Text=@s_languageService.GetString("Home-Confirm") ButtonStyle="ButtonStyle.Primary" Click="() => LoadDirectoryItems(currentPath)" />
+    <!-- 顶部路径栏 -->
+    <div class="path-bar">
+        <input class="custom-input" @bind="currentPath" @onkeydown="HandleKeyDown" placeholder="输入路径" />
+        <RadzenButton Text="◀" ButtonStyle="ButtonStyle.Light" Click="GoBack" />
+    </div>
+
+    <!-- 单独一行的压缩按钮 -->
+    <div class="compress-button-row">
+        <RadzenButton class="compress-button" Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressDialog" />
     </div>
 
     <RadzenNotification />
 
-    <hr />
 
-    @* 开始压缩的按钮 *@
-    <div style="padding: 10px;">
-        <RadzenButton Text="@compressButtonText" ButtonStyle="ButtonStyle.Primary" Click="ToggleCompressDialog" />
-    </div>
+    @* <hr /> *@
 
-    @* 表格包含标题和内容部分 *@
-    <div style="flex: 1; overflow-y: auto; max-height: calc(100vh - 150px);">
+    <!-- 文件表格区 -->
+    <div class="directory-list-container">
         @if (directoryItems != null && directoryItems.Any())
         {
-            <div style="display: flex; justify-content: space-between; padding: 10px; background-color: #f7f7f7; font-weight: bold; border-bottom: 2px solid #e0e0e0;">
-                @* <div style="flex: 1; text-align: center;">创建时间</div> *@
-                <div style="flex: 1;">@s_languageService.GetString("Home-ItemName")</div>
-                <div style="flex: 1; text-align: center;">@s_languageService.GetString("Home-UpdateTime")</div>
-                <div style="flex: 1; text-align: right;">@s_languageService.GetString("Home-ItemSize")</div>
-            </div>
+                <div class="directory-list-header">
+                    <div>@s_languageService.GetString("Home-ItemName")</div>
+                    <div class="center">@s_languageService.GetString("Home-UpdateTime")</div>
+                    <div class="right">@s_languageService.GetString("Home-ItemSize")</div>
+                </div>
 
-            <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
-                <Template Context="item">
-                    <div style="display: flex; justify-content: space-between; padding: 1px; cursor: pointer; background-color: @(selectedItems.Contains(item) ? "#dff0d8" : "transparent");"
-                    @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
+                <RadzenDataList Data="@directoryItems" TItem="HomeContent" AllowPaging="false" PageSize="8">
+                    <Template Context="item">
+                        <div class="directory-item @(selectedItems.Contains(item) ? "selected" : "")"
+                             @onclick="() => OnItemClick(item)" ontouchstart="OnTouchStart(event, item)">
 
-                        <!-- 文件/目录类型图标 -->
                         @if (item.Type == ContentType.k_directory)
                         {
                             @("\ud83d\udcc1")
@@ -74,38 +75,31 @@
                             @("\ud83d\udcc4")
                         }
 
-                        <!-- 文件/目录名称 -->
-                        <div style="flex: 1;">@item.Content</div>
-
-                        <!-- 更新时间 -->
-                        <div style="flex: 1; text-align: center;">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
-
-                        <!-- 文件大小 -->
-                        <div style="flex: 1; text-align: right;">
+                            <div>@item.Content</div>
+                            <div class="center">@item.UpdateTime.ToString("yyyy/MM/dd HH:mm:ss")</div>
+                            <div class="right">
                             @if (item.SizeInMB.HasValue)
                             {
                                 @($"{item.SizeInMB.Value:F2} MB")
                             }
+                            </div>
                         </div>
-                    </div>
-                </Template>
-            </RadzenDataList>
+                    </Template>
+                </RadzenDataList>
         }
         else
         {
-            <div style="text-align: center; padding: 20px;">暂无数据</div>
+                <div class="empty-hint">暂无数据</div>
         }
     </div>
 
-    @*最顶层的div*@
-
-    @*模态窗口*@
+    <!-- 模态窗口 -->
     @if (showCompressDialog)
     {
-        <HomeCompressDialog OnClose="CloseCompressDialog" currentPath="@currentPath" selectedItems="@selectedItems" />
+            <HomeCompressDialog OnClose="CloseCompressDialog" currentPath="@currentPath" selectedItems="@selectedItems" />
     }
-    @*模态窗口*@
 </div>
+
 
 
 @code {
@@ -119,10 +113,20 @@
 
     bool showCompressDialog = false; // 是否显示模态窗口
 
+    
+    bool isWindows = false; // 是否是Windows系统
+    bool isAndroid = false; // 是否是Android系统
+
     // 框架自带的初始化函数
     protected override async Task OnInitializedAsync()
     {
         await s_permission.RequestDocumentPermissionAsync();
+
+        #if WINDOWS
+            isWindows = true;
+         #elif ANDROID
+            isAndroid = true;
+         #endif
 
         compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
 

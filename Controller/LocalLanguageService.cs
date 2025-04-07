@@ -46,6 +46,7 @@
         /// Loads the JSON translation file based on the culture code.
         /// </summary>
         /// <param name="cultureCode">Language code</param>
+        // ToDo 这里的.Result在UI线程上会导致死锁，应该使用async/await,特别是在Android上
         private void LoadLanguageFile(string cultureCode)
         {
             try

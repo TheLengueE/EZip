@@ -1,0 +1,77 @@
+﻿.path-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 1rem;
+}
+
+.custom-input {
+    flex-grow: 1;
+    padding: 0.6rem;
+    font-size: 1rem;
+    border: none;
+    border-bottom: 2px solid #ccc;
+    outline: none;
+    background-color: transparent;
+}
+
+/* 压缩按钮所在行：左对齐 + 占据整体宽度 */
+.compress-button-row {
+    width: 100%;
+    padding: 0 1rem 1rem;
+    display: flex;
+    justify-content: flex-start;
+}
+
+/* RadzenButton 填满与上面输入框对齐的宽度 */
+.compress-button {
+    width: 100%;
+}
+
+
+/* @#@#@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@*/
+
+/* 列表顶部标题行 */
+.directory-list-header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px;
+    background-color: #f7f7f7;
+    font-weight: bold;
+    border-bottom: 2px solid #e0e0e0;
+}
+
+/* 文件列表容器 */
+.directory-list-container {
+    flex: 1;
+    overflow-y: auto;
+    max-height: calc(100vh - 150px);
+}
+
+/* 单个文件项样式 */
+.directory-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1px;
+    cursor: pointer;
+}
+
+    .directory-item.selected {
+        background-color: #dff0d8;
+    }
+
+.center {
+    text-align: center;
+    flex: 1;
+}
+
+.right {
+    text-align: right;
+    flex: 1;
+}
+
+/* 暂无数据提示 */
+.empty-hint {
+    text-align: center;
+    padding: 20px;
+}
