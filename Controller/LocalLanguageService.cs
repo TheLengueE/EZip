@@ -11,6 +11,7 @@
     {
         private Dictionary<string, string> _translations = new();
         private string _currentLanguage = "zh-CN";  // en
+        //private string _currentLanguage = "en";  // en
         public event Action? OnLanguageChanged;
 
         public LocalLanguageService()

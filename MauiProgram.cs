@@ -30,7 +30,7 @@ namespace EZip
             builder.Services.AddSingleton(new EasyLogger("EZip.log", "MainLogger"));
             builder.Services.AddSingleton<DialogService>();
             builder.Services.AddSingleton<NotificationService>();
-            builder.Services.AddSingleton<IPermissionHelper, PermissionHelper>();
+            builder.Services.AddSingleton<IPermissionHelper, AndroidPermissionHelper>();
 
 
             // when use visual studio, change different platform define different services

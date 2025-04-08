@@ -37,7 +37,7 @@
 
     <!-- 顶部路径栏 -->
     <div class="path-bar">
-        <input class="custom-input"@bind-value="currentPath"@bind-value:event="oninput"@onkeydown="HandleKeyDown"placeholder="输入路径" />
+        <input class="custom-input"@bind-value="currentPath"@bind-value:event="oninput"@onkeydown="HandleKeyDown" />
         <RadzenButton Text="◀" ButtonStyle="ButtonStyle.Light" Click="GoBack" />
     </div>
 
@@ -87,7 +87,7 @@
         }
         else
         {
-                <div class="empty-hint">暂无数据</div>
+                <div class="empty-hint">@s_languageService.GetString("Home-NoData")</div>
         }
     </div>
 
@@ -128,42 +128,38 @@
 
         compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
 
-        LoadDirectoryItems(s_directory.NowPath);
+        await LoadDirectoryItemsAsync (s_directory.NowPath);
 
         currentPath = s_directory.NowPath;
     }
 
-    // 传入一个路径，加载该路径下的所有文件和目录
-    private void LoadDirectoryItems(string path)
+    private async Task LoadDirectoryItemsAsync(string path)
     {
         isCompressMode = false;
         compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
         selectedItems.Clear(); // 清空之前的选择
 
-        // 目录不存在时，显示警告信息然后返回
         if (!Directory.Exists(path))
         {
             s_notification.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = @s_languageService.GetString("Home-InvalidPath")+path,
+                    Summary = @s_languageService.GetString("Home-InvalidPath") + path,
                     Duration = 4000
                 });
             return;
         }
 
-        // 构造更新目录的请求
-        AppRequest request = new AppRequest
+        var request = new AppRequest
             {
                 RequestType = RequestType.k_showDirectory,
                 RequestData = path
             };
 
-        // 获取目录下的所有文件和目录
-        var appResponseDirectories = s_directory.ShowDirectoryDirectories(request);
-        var appResponseFiles = s_directory.ShowDirectoryFiles(request);
+        // ⚠️ 注意：你需要有异步版本的接口，如果没有我们可以包装它
+        var appResponseDirectories = await s_directory.ShowDirectoryDirectoriesAsync(request);
+        var appResponseFiles = await s_directory.ShowDirectoryFilesAsync(request);
 
-        // 目录和文件加载成功时，将结果合并并显示
         if (appResponseDirectories.IsSuccessful && appResponseFiles.IsSuccessful)
         {
             var directories = appResponseDirectories.ResponseData as IEnumerable<HomeContent> ?? Enumerable.Empty<HomeContent>();
@@ -171,68 +167,57 @@
 
             directoryItems = directories.Concat(files).ToList();
             currentPath = path;
-            if (pathStack.Count == 0)
-            {
-                pathStack.Push(path);
-            }
-            else if (pathStack.Peek() != path)
+
+            if (pathStack.Count == 0 || pathStack.Peek() != path)
             {
                 pathStack.Push(path);
             }
         }
-        else  // 如果加载失败，显示错误信息
+        else
         {
-            s_notification.Notify(new NotificationMessage
-                    {
-                        Severity = NotificationSeverity.Error,
-                        Summary = appResponseDirectories.ErrorMessage+appResponseFiles.ErrorMessage,
-                        Duration = 4000
-                    });
-        }
-        StateHasChanged();
-    }
-
-    // ToDo: 处理键盘输入事件,这里只处理回车事件,用于处理回车改变目录
-    // 当前回车没有实际作用，只是用于测试
-    private void HandleKeyDown(KeyboardEventArgs e)
-    {
-        if(e.Key == "Enter")
-        {
-            string message = $"enter event had be call notify pathCount is {pathStack.Count},path is {currentPath}";
-
-            LoadDirectoryItems(currentPath);
-
             s_notification.Notify(new NotificationMessage
                 {
-                    Severity = NotificationSeverity.Warning,
-                    Summary = message,
+                    Severity = NotificationSeverity.Error,
+                    Summary = appResponseDirectories.ErrorMessage + appResponseFiles.ErrorMessage,
                     Duration = 4000
                 });
+        }
+
+        StateHasChanged(); // 触发 UI 更新
+    }
+
+    // 当前回车没有实际作用，只是用于测试
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await LoadDirectoryItemsAsync(currentPath);
         }
     }
 
     // 返回上一次的目录
-    private void GoBack()
+    private async Task GoBack()
     {
-        if (pathStack.Count > 1 )
+        if (pathStack.Count > 1)
         {
             pathStack.Pop();
             string previousPath = pathStack.Peek();
-            LoadDirectoryItems(previousPath);
+            await LoadDirectoryItemsAsync(previousPath);
         }
         else
         {
             s_notification.Notify(new NotificationMessage
                 {
                     Severity = NotificationSeverity.Warning,
-                    Summary = @s_languageService.GetString("Home-GoBackFaild"),
+                    Summary = s_languageService.GetString("Home-GoBackFaild"),
                     Duration = 4000
                 });
         }
     }
 
+
     // 点击某个项目时的处理函数
-    private void OnItemClick(HomeContent item)
+    private async Task OnItemClick(HomeContent item)
     {
         // 如果当前处于选择模式，点击项目时，选择或取消选择
         if (isCompressMode)
@@ -285,7 +270,7 @@
 
             if (response.IsSuccessful)
             {
-                LoadDirectoryItems(currentPath);
+                await LoadDirectoryItemsAsync (currentPath);
             }
         }
 
@@ -324,7 +309,7 @@
                     });
                 return;
             }
-            LoadDirectoryItems(item.AbsolutePath);
+            await LoadDirectoryItemsAsync (item.AbsolutePath);
         }
     }
 
@@ -344,7 +329,6 @@
         else
         {
             showCompressDialog = true;
-            StateHasChanged();
         }
     }
 
@@ -352,7 +336,7 @@
     /// 压缩模态窗口关闭事件，
     /// 已经绑定到模态窗口的关闭按钮上了
     /// </summary>
-    void CloseCompressDialog()
+    private async Task CloseCompressDialog()
     {
         showCompressDialog = false;
 
@@ -361,7 +345,7 @@
         compressButtonText = s_languageService.GetString("Home-ChoseCompressPath");
         selectedItems.Clear(); // 清空之前的选择
 
-        LoadDirectoryItems(currentPath);
+        await LoadDirectoryItemsAsync (currentPath);
         StateHasChanged();
     }
 

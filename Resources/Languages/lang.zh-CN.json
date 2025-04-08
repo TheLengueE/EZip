@@ -8,6 +8,7 @@
   "Home-ItemSize": "大小",
   "Home-ChoseCompressPath": "选择压缩目录",
   "Home-BeginCompress": "开始压缩",
+  "Home-NoData": "暂无数据",
 
   "HomeD-CompressFileName": "输入压缩文件名字",
   "HomeD-CompressFileType": "选择压缩格式",
@@ -16,7 +17,12 @@
   "HomeD-Compress": "压缩",
   "HomeD-Close": "取消",
 
+  "AndroidPermissionHelper-PermissionRequests": "权限请求",
+  "AndroidPermissionHelper-PermissionRequestMessage": "为了正常访问文件，需要授予“管理所有文件”权限。",
+  "AndroidPermissionHelper-ToSettings": "去授权",
+  "AndroidPermissionHelper-Cancel": "取消",
+
   "Menu1": "首页",
-  "Menu2": "收藏",
+  "Menu2": "设置",
   "Menu3": "帮助"
 }

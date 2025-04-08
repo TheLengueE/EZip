@@ -79,9 +79,9 @@
     // 在弹窗中确定压缩文件
     private void ConfirmCompress()
     {
-           string[] contents = selectedItems
-        .Select(item => Path.Combine(currentPath, item.Content))
-        .ToArray();
+        string[] contents = selectedItems
+     .Select(item => Path.Combine(currentPath, item.Content))
+     .ToArray();
 
         if (string.IsNullOrEmpty(compressFileName))
         {
@@ -139,6 +139,7 @@
                 });
         }
 
+        CloseModal();
      }
 
 }

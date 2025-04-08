@@ -84,6 +84,11 @@
             return response;
         }
 
+        // 异步方法实现
+        public async Task<AppResponse> ShowDirectoryDirectoriesAsync(AppRequest request)
+        {
+            return await Task.Run(() => ShowDirectoryDirectories(request));
+        }
 
         /// <summary>
         /// 展示当前目录下的目录
@@ -146,7 +151,13 @@
             return response;
         }
 
-            // ToDo
+        // 异步方法实现
+        public async Task<AppResponse> ShowDirectoryFilesAsync(AppRequest request)
+        {
+            return await Task.Run(() => ShowDirectoryFiles(request));
+        }
+
+        // ToDo
         public AppResponse CreateDirectory(AppRequest request)
         {
             AppResponse response = new AppResponse();

@@ -8,6 +8,7 @@
   "Home-ItemSize": "Size",
   "Home-ChoseCompressPath": "ChoseCompressPath",
   "Home-BeginCompress": "StartCompression",
+  "Home-NoData": "No data yet",
 
   "HomeD-CompressFileName": "Input zip file name",
   "HomeD-CompressSuccess": "Compress Success",
@@ -16,8 +17,13 @@
   "HomeD-Compress": "Compression",
   "HomeD-Close": "Cancel",
 
+  "AndroidPermissionHelper-PermissionRequests": "PermissionRequests",
+  "AndroidPermissionHelper-PermissionRequestMessage": "In order to access the files properly, you need to grant the Manage All Files permission.",
+  "AndroidPermissionHelper-ToSettings": "Settings",
+  "AndroidPermissionHelper-Cancel": "Cancel",
+
   "Menu1": "Home",
-  "Menu2": "Favorites",
+  "Menu2": "Seting",
   "Menu3": "Help"
 }
 
