@@ -186,7 +186,7 @@
         StateHasChanged(); // 触发 UI 更新
     }
 
-    // 当前回车没有实际作用，只是用于测试
+    // 处理键盘按下事件，这里只处理了回车键，按下回车键会加载当前路径
     private async Task HandleKeyDown(KeyboardEventArgs e)
     {
         if (e.Key == "Enter")
@@ -214,7 +214,6 @@
                 });
         }
     }
-
 
     // 点击某个项目时的处理函数
     private async Task OnItemClick(HomeContent item)
@@ -259,7 +258,7 @@
                     RequestType = RequestType.k_k_unpackFile,
                     RequestData =  homeUnpackMessage
                 };
-            var response = s_compress.UnpackArchive(request);
+            var response = await s_compress.UnpackArchiveAsync(request);
 
             s_notification.Notify(new NotificationMessage
                 {

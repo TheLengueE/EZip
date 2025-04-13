@@ -50,6 +50,8 @@
             </ChildContent>
         </RadzenCard>
 
+        <RadzenProgressBar Value="@CompressProgress" ShowValue="true" Unit="%" Mode="ProgressBarMode.Determinate" Style="width: 100%;" />
+
     </div>
 </div>
 
@@ -63,9 +65,28 @@
     [Parameter]
     public EventCallback OnClose { get; set; }
 
+    private int CompressProgress { get; set; } = 0;
+
     private string ? selectedFormat = "ZIP";
     private string ? compressFileName = "";
     private List<string> compressionFormats = new List<string> { "ZIP", "7Z", "TAR" };
+
+    protected override void OnInitialized()
+    {
+        s_compress.OnCompressCompleted += OnProgressUpdated;
+    }
+
+    private void OnProgressUpdated()
+    {
+        CompressProgress = s_compress.CompressProgress;
+        InvokeAsync(StateHasChanged); 
+    }
+
+    public void Dispose()
+    {
+        s_compress.OnCompressCompleted -= OnProgressUpdated;
+    }
+
 
     private async Task CloseModal()
     {
@@ -77,7 +98,7 @@
     }
 
     // 在弹窗中确定压缩文件
-    private void ConfirmCompress()
+    private async Task ConfirmCompress()
     {
         string[] contents = selectedItems
      .Select(item => Path.Combine(currentPath, item.Content))
@@ -119,7 +140,7 @@
             };
 
         // 开始压缩操作
-        var response = s_compress.CompressFile(request);
+        var response = await s_compress.CompressFileAsync(request);
         if (response.IsSuccessful)
         {
             s_notification.Notify(new NotificationMessage
@@ -139,9 +160,8 @@
                 });
         }
 
-        CloseModal();
+        await CloseModal();
      }
-
 }
 
 

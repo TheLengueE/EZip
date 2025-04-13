@@ -12,6 +12,9 @@
     {
         private readonly EasyLogger _logger;
 
+        public event Action? OnCompressCompleted;
+        public int CompressProgress { get; set; } = 0;
+
         public AndroidCompress(EasyLogger logger)
         {
             _logger = logger;
@@ -83,6 +86,17 @@
         }
 
         /// <summary>
+        /// 异步执行压缩的逻辑，对外部提供的请求进行验证和处理，然后依据请求类型调用具体的压缩方法
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<AppResponse> CompressFileAsync(AppRequest request)
+        {
+            return await Task.Run(() => CompressFile(request));
+        }
+
+
+        /// <summary>
         /// 实际执行 ZIP 压缩的逻辑
         /// </summary>
         /// <param name="directories">需要压缩的目录数组,绝对路径</param>
@@ -97,11 +111,29 @@
                     Default = Encoding.UTF8
                 }
             };
-
             bool compressError = false;  // 标志是否发生错误
 
             try
             {
+                var allFiles = new List<(string baseDir, string fullPath)>();
+                foreach (var dir in directories)
+                {
+                    if (Directory.Exists(dir))
+                    {
+                        foreach (var filePath in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+                        {
+                            allFiles.Add((dir, filePath));
+                        }
+                    }
+                    else if (File.Exists(dir))
+                    {
+                        allFiles.Add((Path.GetDirectoryName(dir) ?? "", dir));
+                    }
+                }
+                int totalFiles = allFiles.Count;
+                int compressedCount = 0;
+
+
                 using (var zipStream = new FileStream(outputFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
                 using (var writer = WriterFactory.Open(zipStream, ArchiveType.Zip, options))
                 {
@@ -113,12 +145,17 @@
                             {
                                 string relativePath = Path.GetRelativePath(dir, filePath);
                                 writer.Write(relativePath, File.OpenRead(filePath));
+                                compressedCount++;
+                                CompressProgress = (int)((float)compressedCount / totalFiles * 100);
+                                OnCompressCompletedNotify();
                             }
                         }
                         else if (File.Exists(dir))
                         {
                             string relativePath = Path.GetFileName(dir);
                             writer.Write(relativePath, File.OpenRead(dir));
+                            compressedCount++;
+                            CompressProgress = (int)((float)compressedCount / totalFiles * 100);
                         }
                         else
                         {
@@ -129,7 +166,7 @@
             }
             catch (Exception ex)
             {
-                compressError = true; 
+                compressError = true;
                 _logger.LogWarning($"压缩失败: {ex.Message}");
                 throw;
             }
@@ -140,9 +177,9 @@
                 {
                     File.Delete(outputFilePath);
                 }
+                CompressProgress = 0;  // 重置进度
             }
         }
-
 
         /// <summary>
         /// 执行 7-Zip 压缩的逻辑
@@ -174,6 +211,24 @@
 
             try
             {
+                var allFiles = new List<(string baseDir, string fullPath)>();
+                foreach (var dir in directories)
+                {
+                    if (Directory.Exists(dir))
+                    {
+                        foreach (var filePath in Directory.GetFiles(dir, "*", SearchOption.AllDirectories))
+                        {
+                            allFiles.Add((dir, filePath));
+                        }
+                    }
+                    else if (File.Exists(dir))
+                    {
+                        allFiles.Add((Path.GetDirectoryName(dir) ?? "", dir));
+                    }
+                }
+                int totalFiles = allFiles.Count;
+                int compressedCount = 0;
+
                 using (var tarStream = File.OpenWrite(outputFilePath))
                 using (var writer = WriterFactory.Open(tarStream, ArchiveType.Tar, options))
                 {
@@ -185,12 +240,18 @@
                             {
                                 string relativePath = Path.GetRelativePath(dir, filePath);
                                 writer.Write(relativePath, File.OpenRead(filePath));
+                                compressedCount++;
+                                CompressProgress = (int)((float)compressedCount / totalFiles * 100);
+                                OnCompressCompletedNotify();
                             }
                         }
                         else if (File.Exists(dir))
                         {
                             string relativePath = Path.GetFileName(dir);
                             writer.Write(relativePath, File.OpenRead(dir));
+                            compressedCount++;
+                            CompressProgress = (int)((float)compressedCount / totalFiles * 100);
+                            OnCompressCompletedNotify();
                         }
                         else
                         {
@@ -215,10 +276,10 @@
                     {
                         File.Delete(outputFilePath);
                     }
+                    CompressProgress = 0;  // 重置进度
                 }
             }
         }
-
 
         /// <summary>
         /// 解压缩文件的逻辑,对外部提供的请求进行验证和处理，然后依据请求类型调用具体的解压缩方法
@@ -280,6 +341,12 @@
             }
         }
 
+        // 异步执行解压缩的逻辑，对外部提供的请求进行验证和处理，然后依据请求类型调用具体的解压缩方法
+        public Task<AppResponse> UnpackArchiveAsync(AppRequest request)
+        {
+            return Task.Run(() => UnpackArchive(request));
+        }
+
         /// <summary>
         /// 预览压缩包的内容
         /// </summary>
@@ -290,6 +357,11 @@
         public AppResponse OpenArchive(string archivePath)
         {
             throw new System.NotImplementedException();
+        }
+
+        private void OnCompressCompletedNotify()
+        {
+            OnCompressCompleted?.Invoke();
         }
     }
 }
