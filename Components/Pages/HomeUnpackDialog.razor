@@ -1,0 +1,29 @@
+﻿@using EZip.Model
+@using EZip.Controller
+@using Radzen.Blazor
+@using Microsoft.AspNetCore.Components
+
+@*注入目录操作接口*@
+@inject IDirectory s_directory
+
+@*注入文件操作接口*@
+@inject IFile s_file
+
+@*注入通知服务*@
+@inject NotificationService s_notification
+
+@*注入日志服务*@
+@inject EasyLogger s_logger
+
+@*注入压缩解压相关服务*@
+@inject ICompress s_compress
+
+@*注入本地化服务*@
+@inject LocalLanguageService s_languageService
+
+<RadzenProgressBar Value="@UnpackProgress" ShowValue="true" Unit="%" Mode="ProgressBarMode.Determinate" Style="width: 100%;" />
+
+@code {
+    private int UnpackProgress { get; set; } = 0;
+
+}
